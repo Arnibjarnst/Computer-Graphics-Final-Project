@@ -28,6 +28,7 @@ public:
     Sphere(const PropertyList & propList) {
         m_position = propList.getPoint3("center", Point3f());
         m_radius = propList.getFloat("radius", 1.f);
+        m_radius2 = m_radius * m_radius;
 
         m_bbox.expandBy(m_position - Vector3f(m_radius));
         m_bbox.expandBy(m_position + Vector3f(m_radius));
@@ -38,14 +39,31 @@ public:
     virtual Point3f getCentroid(uint32_t index) const override { return m_position; }
 
     virtual bool rayIntersect(uint32_t index, const Ray3f &ray, float &u, float &v, float &t) const override {
+        float dx = m_position[0] - ray.o[0];
+        float dy = m_position[1] - ray.o[1];
+        float dz = m_position[2] - ray.o[2];
 
-	/* to be implemented */
-        return false;
+        Vector3f rayToCircle = Vector3f(dx, dy, dz);
+        float distOfRay = rayToCircle.dot(ray.d);
 
+        if (distOfRay < 0) return false;
+
+        float d2 = dx * dx + dy * dy + dz * dz;
+        float distFromCenter2 = d2 - distOfRay * distOfRay;
+
+        if (distFromCenter2 > m_radius2) return false;
+        
+        t = distOfRay - std::sqrt(m_radius2 - distFromCenter2);
+
+        return t >= ray.mint && t <= ray.maxt;
     }
 
     virtual void setHitInformation(uint32_t index, const Ray3f &ray, Intersection & its) const override {
-        /* to be implemented */
+        its.p = ray.o + ray.d * its.t;
+        Vector3f dir = (its.p - m_position).normalized();
+        its.geoFrame = Frame(dir);
+        its.shFrame = Frame(dir);
+        its.uv = sphericalCoordinates(dir);
     }
 
     virtual void sampleSurface(ShapeQueryRecord & sRec, const Point2f & sample) const override {
@@ -76,6 +94,7 @@ public:
 protected:
     Point3f m_position;
     float m_radius;
+    float m_radius2;
 };
 
 NORI_REGISTER_CLASS(Sphere, "sphere");
