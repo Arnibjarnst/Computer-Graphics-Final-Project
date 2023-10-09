@@ -28,7 +28,7 @@ public:
      */
     Color3f sample(EmitterQueryRecord& lRec, const Point2f& sample) const {
         lRec.p = position;
-        lRec.wi = position - lRec.ref;
+        lRec.wi = lRec.ref - position;
         return eval(lRec) / pdf(lRec);
     };
 

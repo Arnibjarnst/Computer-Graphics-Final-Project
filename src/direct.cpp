@@ -27,28 +27,30 @@ public:
             return Color3f(0.0f);
 
         const BSDF* bsdf = its.mesh->getBSDF();
-        const std::vector<Emitter*> emitters = scene->getLights();
+        const std::vector<Emitter*> lights = scene->getLights();
 
         Color3f totalColor = Color3f(0.0f);
 
-        for (Emitter* emitter : emitters) {
+        for (Emitter* light : lights) {
             EmitterQueryRecord q = EmitterQueryRecord();
             q.ref = its.p;
-            const Color3f color = emitter->sample(q, sampler->next2D());
+            const Color3f power = light->sample(q, sampler->next2D());
             float distPointToLight = q.wi.norm();
-            Ray3f sampleRay = Ray3f(its.p, q.wi);
 
-            float cos = its.shFrame.n.dot(q.wi) / distPointToLight;
+            float cos = its.shFrame.n.dot(-q.wi) / distPointToLight;
 
             if (cos <= 0) continue;
+
+            Ray3f sampleRay = Ray3f(q.p, q.wi);
 
             Intersection sampleIntersection;
             scene->rayIntersect(sampleRay, sampleIntersection);
 
-            if (sampleIntersection.t > distPointToLight - 0.001 && sampleIntersection.t < distPointToLight + 0.001) {
-                BSDFQueryRecord bsdfQuery = BSDFQueryRecord(its.shFrame.toLocal(q.wi), its.shFrame.toLocal(-ray.d), ESolidAngle);
-                float pdfBSDF = its.mesh->getBSDF()->pdf(bsdfQuery);
-                if (pdfBSDF > 0) totalColor += color * cos / pdfBSDF;
+            if (sampleIntersection.t > 0.9999 && sampleIntersection.t < 1.0001) {
+                BSDFQueryRecord bsdfQuery = BSDFQueryRecord(its.shFrame.toLocal(-q.wi / q.wi.norm()), its.shFrame.toLocal(-ray.d), ESolidAngle);
+                float pdfBSDF = bsdf->pdf(bsdfQuery);
+                Color3f color = bsdf->eval(bsdfQuery);
+                if (pdfBSDF > 0) totalColor += power * cos * color / pdfBSDF;
             }
         }
         return totalColor;
