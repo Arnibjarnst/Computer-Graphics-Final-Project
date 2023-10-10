@@ -26,7 +26,7 @@ NORI_NAMESPACE_BEGIN
 class Sphere : public Shape {
 public:
     Sphere(const PropertyList & propList) {
-        m_position = propList.getPoint3("center", Point3f());
+        m_position = propList.getPoint3("center", Point3f(0.0f));
         m_radius = propList.getFloat("radius", 1.f);
         m_radius2 = m_radius * m_radius;
 
@@ -39,21 +39,17 @@ public:
     virtual Point3f getCentroid(uint32_t index) const override { return m_position; }
 
     virtual bool rayIntersect(uint32_t index, const Ray3f &ray, float &u, float &v, float &t) const override {
-        float dx = m_position[0] - ray.o[0];
-        float dy = m_position[1] - ray.o[1];
-        float dz = m_position[2] - ray.o[2];
+        Vector3f oc = ray.o - m_position;
+        float A = ray.d.dot(ray.d);
+        float B = 2 * oc.dot(ray.d);
+        float C = oc.dot(oc) - m_radius * m_radius;
+        float D = B * B - 4 * A * C;
 
-        Vector3f rayToCircle = Vector3f(dx, dy, dz);
-        float distOfRay = rayToCircle.dot(ray.d);
+        if (D < 0) return false;
 
-        if (distOfRay < 0) return false;
-
-        float d2 = dx * dx + dy * dy + dz * dz;
-        float distFromCenter2 = d2 - distOfRay * distOfRay;
-
-        if (distFromCenter2 > m_radius2) return false;
-        
-        t = distOfRay - std::sqrt(m_radius2 - distFromCenter2);
+        float Dsqrt = std::sqrt(D);
+        t = (- B - Dsqrt) / (2 * A);
+        if (t < 0) t = (-B + Dsqrt) / (2 * A);
 
         return t >= ray.mint && t <= ray.maxt;
     }

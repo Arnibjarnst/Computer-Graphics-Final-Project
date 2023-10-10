@@ -30,6 +30,9 @@ public:
 
     virtual T eval(const Point2f & uv) override {
         /* to be implemented */
+        int i = static_cast<int>((uv.x() - m_delta.x()) / m_scale.x());
+        int j = static_cast<int>((uv.y() - m_delta.y()) / m_scale.y());
+        if (((i+j) % 2 + 2) % 2) return m_value2;
 	    return m_value1;
     }
 

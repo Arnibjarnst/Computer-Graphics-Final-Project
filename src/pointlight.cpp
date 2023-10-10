@@ -28,7 +28,11 @@ public:
      */
     Color3f sample(EmitterQueryRecord& lRec, const Point2f& sample) const {
         lRec.p = position;
-        lRec.wi = lRec.ref - position;
+        lRec.wi = (position - lRec.ref);
+        float dist = lRec.wi.norm();
+        lRec.wi /= dist;
+        lRec.shadowRay = Ray3f(lRec.ref, lRec.wi, Epsilon, dist + Epsilon);
+        lRec.pdf = 4 * M_PI * dist * dist;
         return eval(lRec) / pdf(lRec);
     };
 
@@ -57,8 +61,7 @@ public:
      *     A probability/density value
      */
     float pdf(const EmitterQueryRecord& lRec) const {
-        const float r = lRec.wi.norm();
-        return 4 * M_PI * r * r * r / 3;
+        return lRec.pdf;
     };
 
 
