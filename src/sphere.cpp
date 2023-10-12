@@ -59,7 +59,8 @@ public:
         Vector3f dir = (its.p - m_position).normalized();
         its.geoFrame = Frame(dir);
         its.shFrame = Frame(dir);
-        its.uv = sphericalCoordinates(dir);
+        its.uv = sphericalCoordinates(dir) * INV_PI;
+        its.uv.x() /= 2; // shouldn´t this be done for y not x ???
     }
 
     virtual void sampleSurface(ShapeQueryRecord & sRec, const Point2f & sample) const override {
