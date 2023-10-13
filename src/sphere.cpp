@@ -49,18 +49,21 @@ public:
 
         float Dsqrt = std::sqrt(D);
         t = (- B - Dsqrt) / (2 * A);
-        if (t < 0) t = (-B + Dsqrt) / (2 * A);
+        if (t < ray.mint || t > ray.maxt) t = (-B + Dsqrt) / (2 * A);
+        else return true;
 
         return t >= ray.mint && t <= ray.maxt;
     }
 
     virtual void setHitInformation(uint32_t index, const Ray3f &ray, Intersection & its) const override {
-        its.p = ray.o + ray.d * its.t;
+        its.p = ray(its.t);
         Vector3f dir = (its.p - m_position).normalized();
         its.geoFrame = Frame(dir);
         its.shFrame = Frame(dir);
-        its.uv = sphericalCoordinates(dir) * INV_PI;
-        its.uv.x() /= 2; // shouldn´t this be done for y not x ???
+        its.uv = Point2f(
+            std::atan2(dir.y(), dir.x()) * INV_PI / 2 + 0.5,
+            std::asin(dir.z()) * INV_PI + 0.5
+        );
     }
 
     virtual void sampleSurface(ShapeQueryRecord & sRec, const Point2f & sample) const override {
