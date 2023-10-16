@@ -61,7 +61,7 @@ public:
         its.geoFrame = Frame(dir);
         its.shFrame = Frame(dir);
         its.uv = Point2f(
-            std::atan2(dir.y(), dir.x()) * INV_PI / 2 + 0.5,
+            std::atan2(dir.y(), dir.x()) * INV_TWOPI + 0.5,
             std::asin(dir.z()) * INV_PI + 0.5
         );
     }
