@@ -5,10 +5,10 @@
 
 NORI_NAMESPACE_BEGIN
 
-class Direct_ems : public Integrator {
+class DirectEms : public Integrator {
 public:
 
-    Direct_ems(const PropertyList& props) {}
+    DirectEms(const PropertyList& props) {}
     /**
      * \brief Sample the incident radiance along a ray
      *
@@ -26,20 +26,24 @@ public:
         if (!scene->rayIntersect(ray, its))
             return Color3f(0.0f);
        
+        // light emitted from intersection point
+        Color3f Le = its.mesh->isEmitter() ? its.mesh->getEmitter()->eval(EmitterQueryRecord(ray.o, its.p, its.shFrame.n)) : 0.0f;
 
+        // random light in scene
         const Emitter* light = scene->getRandomEmitter(sampler->next1D());
         
-        EmitterQueryRecord q = EmitterQueryRecord();
-        q.ref = its.p;
-
+        // radiance of a sampled point on light source
+        EmitterQueryRecord q = EmitterQueryRecord(its.p);
         const Color3f radiance = light->sample(q, sampler->next2D());
 
-        if (scene->rayIntersect(q.shadowRay)) return Color3f(0.0f);
+        // if light is not visible return emitted light
+        if (scene->rayIntersect(q.shadowRay)) return Le;
 
         const float cos = its.shFrame.n.dot(q.wi);
+        // light source is behind (so not visible)
+        if (cos <= 0) return Le;
 
-        if (cos <= 0) return Color3f(0.0f);
-
+        // bsdf contribution
         const BSDF* bsdf = its.mesh->getBSDF();
         BSDFQueryRecord bsdfQuery = BSDFQueryRecord(
             its.shFrame.toLocal(q.wi),
@@ -47,15 +51,17 @@ public:
             ESolidAngle);
         bsdfQuery.uv = its.uv;
         bsdfQuery.p = its.p;
-        Color3f color = bsdf->eval(bsdfQuery);
+        Color3f scatter = bsdf->eval(bsdfQuery);
 
-        return radiance * cos * color * scene->getLights().size();
+        // multiply light contriubtion by number of lights in scene to get the correct pdf
+        // might overcompensate small lights ???
+        return Le + radiance * cos * scatter * scene->getLights().size();
     };
 
     std::string toString() const {
-        return "Direct_ems[]";
+        return "DirectEms[]";
     }
 };
 
-NORI_REGISTER_CLASS(Direct_ems, "direct_ems");
+NORI_REGISTER_CLASS(DirectEms, "direct_ems");
 NORI_NAMESPACE_END

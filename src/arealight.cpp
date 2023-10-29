@@ -67,7 +67,7 @@ public:
 
         float d2 = (lRec.p - lRec.ref).squaredNorm();
         float cos = -lRec.n.dot(lRec.wi);
-        if (cos > 0) return m_shape->pdfSurface(ShapeQueryRecord(lRec.ref, lRec.p)) / cos;
+        if (cos > 0) return m_shape->pdfSurface(ShapeQueryRecord(lRec.ref, lRec.p)) * d2 / cos;
         return 0.0f;
     }
 
