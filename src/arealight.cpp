@@ -19,6 +19,7 @@
 #include <nori/emitter.h>
 #include <nori/warp.h>
 #include <nori/shape.h>
+#include <nori/mesh.h>
 
 NORI_NAMESPACE_BEGIN
 
@@ -40,21 +41,34 @@ public:
         if(!m_shape)
             throw NoriException("There is no shape attached to this Area light!");
 
-        throw NoriException("To implement...");
+        if (lRec.n.dot(lRec.wi) < 0) return m_radiance;
+        return Color3f(0.0f);
     }
 
     virtual Color3f sample(EmitterQueryRecord & lRec, const Point2f & sample) const override {
         if(!m_shape)
             throw NoriException("There is no shape attached to this Area light!");
 
-        throw NoriException("To implement...");
+        ShapeQueryRecord shape_query(lRec.ref);
+        m_shape->sampleSurface(shape_query, sample);
+        lRec.p = shape_query.p;
+        lRec.n = shape_query.n;
+        lRec.wi = (lRec.p - lRec.ref).normalized();
+        lRec.pdf = pdf(lRec);
+        lRec.shadowRay = Ray3f(lRec.ref, lRec.wi, Epsilon, (lRec.p - lRec.ref).norm() - Epsilon);
+
+        if (!lRec.pdf) return Color3f(0.0f);
+        return eval(lRec) / lRec.pdf;
     }
 
     virtual float pdf(const EmitterQueryRecord &lRec) const override {
         if(!m_shape)
             throw NoriException("There is no shape attached to this Area light!");
 
-        throw NoriException("To implement...");
+        float d2 = (lRec.p - lRec.ref).squaredNorm();
+        float cos = -lRec.n.dot(lRec.wi);
+        if (cos > 0) return m_shape->pdfSurface(ShapeQueryRecord(lRec.ref, lRec.p)) / cos;
+        return 0.0f;
     }
 
 
