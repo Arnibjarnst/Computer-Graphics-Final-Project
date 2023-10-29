@@ -31,8 +31,8 @@ public:
         lRec.wi = (position - lRec.ref);
         float dist = lRec.wi.norm();
         lRec.wi /= dist;
-        lRec.shadowRay = Ray3f(lRec.ref, lRec.wi, Epsilon, dist + Epsilon);
-        lRec.pdf = 4 * M_PI * dist * dist;
+        lRec.shadowRay = Ray3f(lRec.ref, lRec.wi, Epsilon, dist - Epsilon);
+        lRec.pdf = 1;
         return eval(lRec) / pdf(lRec);
     };
 
@@ -45,7 +45,8 @@ public:
      *     The emitter value, evaluated for each color channel
      */
     Color3f eval(const EmitterQueryRecord& lRec) const {
-        return power;
+        float dist = (lRec.p - lRec.ref).norm();
+        return power / (4 * M_PI * dist * dist);
     };
 
     /**
@@ -61,7 +62,7 @@ public:
      *     A probability/density value
      */
     float pdf(const EmitterQueryRecord& lRec) const {
-        return lRec.pdf;
+        return 1;
     };
 
 

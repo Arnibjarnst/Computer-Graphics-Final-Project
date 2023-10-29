@@ -20,9 +20,9 @@ public:
             return Color3f(1.0f);
 
 
-        Vector3f sample_direction = Warp().sampleUniformHemisphere(sampler, its.shFrame.n);
-        Ray3f sample_ray(its.p, sample_direction);
-        if (!scene->rayIntersect(sample_ray, its) || its.t > length)
+        Vector3f sample_direction = Warp::sampleUniformHemisphere(sampler, its.shFrame.n);
+        Ray3f sample_ray(its.p, sample_direction, Epsilon, length);
+        if (!scene->rayIntersect(sample_ray, its))
             return Color3f(1.0f);
         return Color3f(0.0f);
     }
