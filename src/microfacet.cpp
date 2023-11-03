@@ -82,17 +82,40 @@ public:
 
     /// Evaluate the BRDF for the given pair of directions
     virtual Color3f eval(const BSDFQueryRecord &bRec) const override {
-    	throw NoriException("MicrofacetBRDF::eval(): not implemented!");
+        Vector3f wh = (bRec.wi + bRec.wo).normalized();
+        float D = evalBeckmann(wh);
+        float F = fresnel(wh.dot(bRec.wi), m_extIOR, m_intIOR);
+        float G = smithBeckmannG1(bRec.wi, wh) * smithBeckmannG1(bRec.wo, wh);
+        return (m_kd * INV_PI + m_ks * D * F * G / (4 * bRec.wi.z() * bRec.wo.z()));
     }
 
     /// Evaluate the sampling density of \ref sample() wrt. solid angles
     virtual float pdf(const BSDFQueryRecord &bRec) const override {
-    	throw NoriException("MicrofacetBRDF::pdf(): not implemented!");
+        if (bRec.measure != ESolidAngle
+            || Frame::cosTheta(bRec.wi) <= 0
+            || Frame::cosTheta(bRec.wo) <= 0)
+            return 0.0f;
+        Vector3f wh = (bRec.wi + bRec.wo).normalized();
+        return (m_ks * evalBeckmann(wh) * wh.z() / (4 * wh.dot(bRec.wo)) + (1 - m_ks) * bRec.wo.z() * INV_PI);
     }
 
     /// Sample the BRDF
     virtual Color3f sample(BSDFQueryRecord &bRec, const Point2f &_sample) const override {
-    	throw NoriException("MicrofacetBRDF::sample(): not implemented!");
+        if (Frame::cosTheta(bRec.wi) <= 0)
+            return Color3f(0.0f);
+        bRec.measure = ESolidAngle;
+        if (_sample.x() < m_ks) {
+            Point2f sample = Point2f(_sample.x() / m_ks, _sample.y());
+            Vector3f wh = Warp::squareToBeckmann(sample, m_alpha);
+            bRec.wo = 2 * (bRec.wi.dot(wh)) * wh - bRec.wi;
+
+            if (bRec.wo.z() <= 0) return Color3f(0.0f);
+        }
+        else {
+            Point2f sample = Point2f((_sample.x() - m_ks) / (1 - m_ks), _sample.y());
+            bRec.wo = Warp::squareToCosineHemisphere(sample);
+        }
+        return bRec.wo.z() * eval(bRec) / pdf(bRec);
     }
 
     virtual std::string toString() const override {

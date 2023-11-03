@@ -26,7 +26,27 @@ public:
         if (!scene->rayIntersect(ray, its))
             return Color3f(0.0f);
 
-        return 0.0f;
+        // light emitted from intersection point
+        Color3f Le = its.mesh->isEmitter() ? its.mesh->getEmitter()->eval(EmitterQueryRecord(ray.o, its.p, its.shFrame.n)) : Color3f(0.0f);
+
+        const BSDF* brdf = its.mesh->getBSDF();
+        BSDFQueryRecord bsdfQuery = BSDFQueryRecord(its.shFrame.toLocal(-ray.d));
+        bsdfQuery.uv = its.uv;
+        bsdfQuery.p = its.p;
+
+        Color3f brdfValue = brdf->sample(bsdfQuery, sampler->next2D());
+
+        if (bsdfQuery.wo.z() <= 0) return Le;
+
+        Ray3f ray2(its.p, its.shFrame.toWorld(bsdfQuery.wo));
+        Intersection its2;
+        if (!scene->rayIntersect(ray2, its2) || !its2.mesh->isEmitter())
+            return Le;
+
+        EmitterQueryRecord eq(its.p, its2.p, its2.shFrame.n);
+        Color3f radiance = its2.mesh->getEmitter()->eval(eq);
+
+        return Le + brdfValue * radiance; // no cosine term???
     };
 
     std::string toString() const {
