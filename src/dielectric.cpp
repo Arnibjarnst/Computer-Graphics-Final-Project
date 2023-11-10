@@ -43,7 +43,31 @@ public:
     }
 
     virtual Color3f sample(BSDFQueryRecord &bRec, const Point2f &sample) const override {
-        throw NoriException("Unimplemented!");
+        bRec.measure = EDiscrete;
+
+        const float f = fresnel(bRec.wi.z(), m_extIOR, m_intIOR);
+
+        if (sample.x() < f) {
+            bRec.wo = Vector3f(
+                -bRec.wi.x(),
+                -bRec.wi.y(),
+                bRec.wi.z()
+            );
+            bRec.eta = 1.0f;
+            return 1.0f;
+        }
+
+        const bool exterior = bRec.wi.z() > 0;
+        bRec.eta = exterior ? (m_extIOR / m_intIOR) : (m_intIOR / m_extIOR);
+        const float eta_ratio_squared = bRec.eta * bRec.eta;
+
+        bRec.wo = Vector3f(
+            -bRec.eta * bRec.wi.x(),
+            -bRec.eta * bRec.wi.y(),
+            (exterior ? -1 : 1) * std::sqrt(1 - eta_ratio_squared * (1 - bRec.wi.z() * bRec.wi.z()))
+        );
+
+        return eta_ratio_squared;
     }
 
     virtual std::string toString() const override {

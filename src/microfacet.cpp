@@ -82,6 +82,10 @@ public:
 
     /// Evaluate the BRDF for the given pair of directions
     virtual Color3f eval(const BSDFQueryRecord &bRec) const override {
+        if (bRec.measure != ESolidAngle
+            || Frame::cosTheta(bRec.wi) <= 0
+            || Frame::cosTheta(bRec.wo) <= 0)
+            return 0.0f;
         Vector3f wh = (bRec.wi + bRec.wo).normalized();
         float D = evalBeckmann(wh);
         float F = fresnel(wh.dot(bRec.wi), m_extIOR, m_intIOR);

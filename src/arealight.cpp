@@ -73,7 +73,12 @@ public:
 
 
     virtual Color3f samplePhoton(Ray3f &ray, const Point2f &sample1, const Point2f &sample2) const override {
-        throw NoriException("To implement...");
+        ShapeQueryRecord shape_query(Point3f(0.0f));
+        m_shape->sampleSurface(shape_query, sample1);
+        ray.o = shape_query.p;
+        ray.d = Frame(shape_query.n).toWorld(Warp::squareToCosineHemisphere(sample2));
+
+        return M_PI / shape_query.pdf * m_radiance;
     }
 
 

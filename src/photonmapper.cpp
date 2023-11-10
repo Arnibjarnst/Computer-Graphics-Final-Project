@@ -63,6 +63,37 @@ public:
 		 */
 
 		// put your code to trace photons here
+        int c = 0;
+        while (c < m_photonCount) {
+            Ray3f ray(Point3f(0.0f), Vector3f(0,0,1));
+            Color3f power = scene->getRandomEmitter(sampler->next1D())->samplePhoton(ray, sampler->next2D(), sampler->next2D());
+            Intersection its;
+            while (scene->rayIntersect(ray, its)) {
+                const BSDF* bsdf = its.mesh->getBSDF();
+                if (bsdf->isDiffuse()) {
+                    m_photonMap->push_back(Photon(
+                        its.p,
+                        -ray.d, // global or local ???
+                        power
+                    ));
+                    c++;
+                    if (c == m_photonCount) break;
+                }
+
+
+                BSDFQueryRecord bsdfQuery = BSDFQueryRecord(its.shFrame.toLocal(-ray.d));
+                bsdfQuery.uv = its.uv;
+                bsdfQuery.p = its.p;
+
+                Color3f bsdfValue = bsdf->sample(bsdfQuery, sampler->next2D());
+
+                const float successProbability = std::min(1.0f, bsdfValue.maxCoeff());
+                if (sampler->next1D() > successProbability) break;
+                power *= bsdfValue / successProbability;
+
+                ray = Ray3f(its.p, its.shFrame.toWorld(bsdfQuery.wo));
+            }
+        }
 
 		/* Build the photon map */
         m_photonMap->build();
@@ -87,7 +118,55 @@ public:
 
 		// put your code for path tracing with photon gathering here
 
-		return Color3f{};
+        Color3f L = 0.0f;
+        Color3f t = 1.0f;
+        Ray3f recursive_ray(_ray);
+        Intersection its;
+        while (scene->rayIntersect(recursive_ray, its)) {
+
+            // light emitted from intersection point
+            if (its.mesh->isEmitter())
+                L += t * its.mesh->getEmitter()->eval(EmitterQueryRecord(recursive_ray.o, its.p, its.shFrame.n));
+
+            const BSDF* bsdf = its.mesh->getBSDF();
+
+            Vector3f wi = its.shFrame.toLocal(-recursive_ray.d);
+
+            if (bsdf->isDiffuse()) {
+                std::vector<uint32_t> results;
+                m_photonMap->search(its.p,
+                    m_photonRadius,
+                    results);
+
+                Color3f photonPower = 0.0f;
+                for (uint32_t i : results) {
+                    const Photon& photon = (*m_photonMap)[i];
+
+                    BSDFQueryRecord photonBsdfQuery(
+                        wi,
+                        its.shFrame.toLocal(photon.getDirection()),
+                        ESolidAngle
+                    );
+                    photonPower += photon.getPower() * bsdf->eval(photonBsdfQuery);
+                }
+                L += t * photonPower * INV_PI / (m_photonRadius * m_photonRadius * m_photonCount);
+                break;
+            }
+
+            float successProbability = std::min(0.99f, t.maxCoeff());
+            if (sampler->next1D() > successProbability) break;
+            t /= successProbability;
+
+            BSDFQueryRecord bsdfQuery = BSDFQueryRecord(wi);
+            bsdfQuery.uv = its.uv;
+            bsdfQuery.p = its.p;
+
+            t *= bsdf->sample(bsdfQuery, sampler->next2D());
+
+            recursive_ray = Ray3f(its.p, its.shFrame.toWorld(bsdfQuery.wo));
+        }
+
+        return L;
     }
 
     virtual std::string toString() const override {
