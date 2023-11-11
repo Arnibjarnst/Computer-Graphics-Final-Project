@@ -34,6 +34,7 @@ public:
         /* Lookup parameters */
         m_photonCount  = props.getInteger("photonCount", 1000000);
         m_photonRadius = props.getFloat("photonRadius", 0.0f /* Default: automatic */);
+        m_emittedCount = 0;
     }
 
     virtual void preprocess(const Scene *scene) override {
@@ -63,21 +64,20 @@ public:
 		 */
 
 		// put your code to trace photons here
-        int c = 0;
-        while (c < m_photonCount) {
+        while (m_photonMap->size() < m_photonCount) {
             Ray3f ray(Point3f(0.0f), Vector3f(0,0,1));
-            Color3f power = scene->getRandomEmitter(sampler->next1D())->samplePhoton(ray, sampler->next2D(), sampler->next2D());
+            Color3f power = scene->getRandomEmitter(sampler->next1D())->samplePhoton(ray, sampler->next2D(), sampler->next2D()) * scene->getLights().size();
+            m_emittedCount++;
             Intersection its;
             while (scene->rayIntersect(ray, its)) {
                 const BSDF* bsdf = its.mesh->getBSDF();
                 if (bsdf->isDiffuse()) {
                     m_photonMap->push_back(Photon(
                         its.p,
-                        -ray.d, // global or local ???
+                        -ray.d,
                         power
                     ));
-                    c++;
-                    if (c == m_photonCount) break;
+                    if (m_photonMap->size() == m_photonCount) break;
                 }
 
 
@@ -147,9 +147,11 @@ public:
                         its.shFrame.toLocal(photon.getDirection()),
                         ESolidAngle
                     );
+                    photonBsdfQuery.p = its.p;
+                    photonBsdfQuery.uv = its.uv;
                     photonPower += photon.getPower() * bsdf->eval(photonBsdfQuery);
                 }
-                L += t * photonPower * INV_PI / (m_photonRadius * m_photonRadius * m_photonCount);
+                L += t * photonPower * INV_PI / (m_photonRadius * m_photonRadius * m_emittedCount);
                 break;
             }
 
@@ -185,6 +187,7 @@ private:
      * NOT the number of emitted photons. You will need to keep track of those yourself.
      */ 
     int m_photonCount;
+    int m_emittedCount;
     float m_photonRadius;
     std::unique_ptr<PhotonMap> m_photonMap;
 };

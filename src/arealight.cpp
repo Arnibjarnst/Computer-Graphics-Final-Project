@@ -73,7 +73,7 @@ public:
 
 
     virtual Color3f samplePhoton(Ray3f &ray, const Point2f &sample1, const Point2f &sample2) const override {
-        ShapeQueryRecord shape_query(Point3f(0.0f));
+        ShapeQueryRecord shape_query(ray.o);
         m_shape->sampleSurface(shape_query, sample1);
         ray.o = shape_query.p;
         ray.d = Frame(shape_query.n).toWorld(Warp::squareToCosineHemisphere(sample2));
