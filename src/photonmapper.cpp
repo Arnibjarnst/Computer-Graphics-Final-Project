@@ -65,7 +65,7 @@ public:
 
 		// put your code to trace photons here
         while (m_photonMap->size() < m_photonCount) {
-            Ray3f ray(Point3f(0.0f), Vector3f(0,0,1));
+            Ray3f ray;
             Color3f power = scene->getRandomEmitter(sampler->next1D())->samplePhoton(ray, sampler->next2D(), sampler->next2D()) * scene->getLights().size();
             m_emittedCount++;
             Intersection its;
