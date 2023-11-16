@@ -4,34 +4,85 @@
 
 **Homework 4 - Global Illumination**
 
-Student Name:
+Student Name: Árni Bjarnsteinsson
 
-Legi Number:
+Legi Number: 21-907-241
 
 (Note: please read the [supplementary](#supplementary) section first before working on this report.)
 
 # Part 1: Dielectric BSDF
-**Time spent on this task:**
+**Time spent on this task: 3 hours**
 
 **Describe your implementation of `Dielectric` class.**
 
-...
+I only needed to implement the sample function. In it I start by putting the measure as EDiscrete and calculating the fresnel coefficient F
+using the function given to us. Now I want to sample the specular reflection with probability F so I simply check if the sample.x is lower that F or not.
+
+If it is I sample the reflection and reflect the incoming direction like in mirror.cpp. Finally I return 1.0, I return 1.0 since according to the slides the bsdf is
+$\frac{F}{cos(\theta_i)}$ but since the sample function should return $cos(\theta_i)\frac{eval()}{pdf()}$ and I sampled with probability F I simply return 1.0f.
+
+If sample.x is not lower than F, then I refract. To do that I calculate the relative refractive index (eta) which is $\frac{m_extIOR}{m_intIOR}$ the incoming ray comes from the outside
+(positive z value) else it is $\frac{m_extIOR}{m_intIOR}$. I then say that the outgoing ray is:
+
+$\omega_o = (-eta * \omega_{ix}, -eta * \omega_{iy}, \pm \sqrt {1 - eta^2 (1 - \omega_{iz}^2)})$
+
+and then I return $eta^2$ since the bsdf value should be $eta^2 * \frac{(1 - F)}{cos(\theta_i)}$ and I sample the refraction with probability 1-F
 
 # Part 2: Path Tracing
 
 ## BSDF Sampling
-**Time spent on this task:**
+**Time spent on this task: 30 mins**
 
 **Describe your implementation of `path_mats`.**
 
-...
+Here I simply initialize my radiance L as 0.0 and my throughput t as 1.0f and while my ray intersects my scene I do the following:
+
+1. If the intersection is an emitter, evaluate the emitter at that point and add t * evalLight to L.
+
+2. Then I do the russian roulette with success probability (probability that I continue) of min(0.99, t.maxCoeff()). Then I sample a point and if it is higher than my success probability then I break, else I divide my throughput t by the success probability.
+
+3. then I sample the bsdf of the intersection point and multiply t with that.
+
+4. Then I set my ray to have origin at my intersection point and with direction in the outgoing sampled direction of the bsdf.
+
+5. go back to 1.
+
+Then after the ray doesn´t intersect the scene or I break cause of the russian roulette I return L.
+
+Note: I start the russian roulette immediately which is I beleive why I have more noise than the reference images
+
 
 ## Multiple Importance Sampling
-**Time spent on this task:**
+**Time spent on this task: 2 hours**
 
 **Describe your implementation of `path_mis`.**
 
-...
+Here I initialize just as in the mats integrator except I also keep track of the pdf of the previous bsdf (where the ray comes from).
+(Note: I put the value of the pdf to -1 if the bsdf is discrete (or it is the initial ray), this could probably be 0.0f but I was unsure what would
+happen if a solid angle bsdf would have a pdf 0.0f or if that is even possible so I made it very explicit).
+
+The loop is now as follows:
+
+1. If the intersection is an emitter, evaluate the emitter at that point and add wMat * t * evalLight to L. where wMat = 1 if the previous bsdfPdf is -1 (discrete).
+    Else $wMat = \frac{bsdfPdf}{bsdfPdf + emitterPdf}$
+
+2. Then I do the russian roulette with success probability (probability that I continue) of min(0.99, t.maxCoeff()). Then I sample a point and if it is higher than my success probability then I break, else I divide my throughput t by the success probability.
+
+3. then I sample the bsdf of the intersection point.
+
+4. If the bsdf is discrete I put bsdfPdf = -1 and continue, else I sample a random emitter in the scene and if it is visible I evaluate the bsdf in that direction
+    and calculate $wEm = \frac{emitterPdf}{\frac{emitterPdf}{N_{emitter}} + bsdfPdfEmitter}$ (Note: I divide only by the number of emitters in the denominator since the pdf in the sampled value does not include that
+    and this bsdf pdf is in the direction of the emitter). Finally I add $t * wEm * |cos(\theta_o)| * bsdfEval * emitterValue$ to L.
+
+5. Then I set my ray to have origin at my intersection point and with direction in the outgoing sampled direction of the bsdf.
+
+6. go back to 1.
+
+Then after the ray doesn´t intersect the scene or I break cause of the russian roulette I return L.
+
+
+Note: I start the russian roulette immediately which is I beleive why I have more noise than the reference images
+
 
 ## Validation
 **Comparison: CGL Triangle**
@@ -59,22 +110,70 @@ Legi Number:
 </div>
 
 # Part 3: Photon Mapping
-**Time spent on this task:**
+**Time spent on this task: 6 hours**
 
 ## Photon Emission from Shape Area Lights
 **Describe your implementation of `AreaEmitter::samplePhoton(...)`.**
 
-...
+I create an empty shapeQuery and sample the shape of the emitter for a point using sample1.
+
+I put the origin of the ray to that sampled point.
+
+Then I sample a cosine-weighted hemispherical direction using Warp::squareToCosineHemisphere(sample2) and convert into global coordinates from the frame
+with the normal of the shape query.
+
+Then I call ray.update() and return $\pi * radiance * |A| =  \pi * radiance \frac{1}{shapeQuery.pdf}$
 
 ## Photon Tracing and Storage
 **Describe your implementation of `PhotonMapper::preprocess(...)`.**
 
-...
+while the size of the photon map is less the m_photonCount i do the following:
+
+1. sample a photon from a random emitter and store the initial power. I have to multiply the power with the number of emitters since I chose that emitter with probablity 1 over the number of lights
+
+2. then I increase my variable m_emittedCount by one which was initialized as 0.
+
+3. Then while that photon intersects with the scene I do the following:
+
+        3.1 if the bsdf of the intersection is diffuse then I add that photon to the photon map with direction towards where it came from and with the power it currently has.
+            If the size of the photon map is now m_photonCount I break
+
+        3.2 Then I sample the bsdf of the intersection and do russian roulette with success probability min(1.0, bsdfValue.maxCoeff())
+
+        3.3 If I survive the russian roulette I multply the power of the photon with $\frac{bsdfValue}{successProbablity}$
+
+        3.4 then I put the direction of the photon as the sampled direction of the bsdf in world coordinates and origin as the intersection point.
+
+
+When the I've added enough photons this loop will break and I will build my photon map.
+
 
 ## Rendering/Radiance Estimation
 **Describe your implementation of `PhotonMapper::Li(...)`.**
 
-...
+Here I simply initialize my radiance L as 0.0 and my throughput t as 1.0f and while my ray intersects my scene I do the following:
+
+1. If the intersection is an emitter, evaluate the emitter at that point and add t * evalLight to L.
+
+2. If the interesection is diffuse then we query the photonmap for all photons within radius m_photonRadius and for each photon we multiply the
+    power of the photon with the bsdfValue between the direction towards where we shot the ray (in the integrator) and the photon direction.
+
+    2.1 Then We sum all those value togeather into photonPower and add $t * photonPower * \frac{\pi}{m\_photonRadius^2 * m\_emittedCount}$ to L
+
+    2.2 Then we break.
+
+3. If the surface was not diffuse we do the russian roulette with success probability (probability that I continue) of min(0.99, t.maxCoeff()). Then I sample a point and if it is higher than my success probability then I break, else I divide my throughput t by the success probability.
+
+4. then I sample the bsdf of the intersection point and multiply t with that.
+
+5. Then I set my ray to have origin at my intersection point and with direction in the outgoing sampled direction of the bsdf.
+
+6. go back to 1.
+
+Then after the ray doesn´t intersect the scene, I break cause of the russian roulette or the ray intersects a diffuse surface, I return L.
+
+
+Note: I start the russian roulette immediately which is I beleive why I have more noise than the reference images
 
 ## Validation
 **Comparison: CGL Triangle**
@@ -135,10 +234,10 @@ $$
 <script src="../resources/jquery.twentytwenty.js"></script>
 
 <script>
-$(window).load(function(){$(".twentytwenty-container").twentytwenty({default_offset_pct: 0.5});});
+    $(window).load(function () { $(".twentytwenty-container").twentytwenty({ default_offset_pct: 0.5 }); });
 </script>
 
 <!-- Markdeep: -->
-<script>var markdeepOptions = {onLoad: function() {$(".twentytwenty-container").twentytwenty({default_offset_pct: 0.5, move_slider_on_hover: true});},tocStyle:'none'};</script>
+<script>var markdeepOptions = { onLoad: function () { $(".twentytwenty-container").twentytwenty({ default_offset_pct: 0.5, move_slider_on_hover: true }); }, tocStyle: 'none' };</script>
 <script src="https://morgan3d.github.io/markdeep/latest/markdeep.min.js?" charset="utf-8"></script>
-<script>window.alreadyProcessedMarkdeep||(document.body.style.visibility="visible")</script>
+<script>window.alreadyProcessedMarkdeep || (document.body.style.visibility = "visible")</script>
