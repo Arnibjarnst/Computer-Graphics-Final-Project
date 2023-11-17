@@ -36,8 +36,6 @@ public:
 
         Color3f brdfValue = brdf->sample(bsdfQuery, sampler->next2D());
 
-        if (bsdfQuery.wo.z() <= 0) return Le;
-
         Ray3f ray2(its.p, its.shFrame.toWorld(bsdfQuery.wo));
         Intersection its2;
         if (!scene->rayIntersect(ray2, its2) || !its2.mesh->isEmitter())
@@ -46,7 +44,7 @@ public:
         EmitterQueryRecord eq(its.p, its2.p, its2.shFrame.n);
         Color3f radiance = its2.mesh->getEmitter()->eval(eq);
 
-        return Le + brdfValue * radiance; // no cosine term???
+        return Le + brdfValue * radiance;
     };
 
     std::string toString() const {

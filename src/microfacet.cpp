@@ -108,6 +108,7 @@ public:
         if (Frame::cosTheta(bRec.wi) <= 0)
             return Color3f(0.0f);
         bRec.measure = ESolidAngle;
+        bRec.eta = 1.0f;
         if (_sample.x() < m_ks) {
             Point2f sample = Point2f(_sample.x() / m_ks, _sample.y());
             Vector3f wh = Warp::squareToBeckmann(sample, m_alpha);
