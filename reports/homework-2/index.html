@@ -4,134 +4,221 @@
 
 **Homework 2 - Sampling and Warping**
 
-Student Name:
+Student Name: Árni Bjarnsteinsson
 
-Legi Number:
+Legi Number: 21-907-241
 
 (Note: please read the [supplementary](#supplementary) section first before working on this report.)
 
 # Square to Uniform Disk
-**Time spent on this task:**
+**Time spent on this task: 10 minutes**
 
-**Describe your implementation of `Warp::squareToUniformDisk` and the associated PDF.**
+As we saw in the lecture we sample in the polar coordinates such that
 
-...
+\begin{equation}
+    \begin{split}
+    & \bullet ~ r = \sqrt{\xi_1} \\
+    & \bullet ~ \theta = 2\pi\xi_2 \\
+    \end{split}
+\end{equation}
+Then our sample points become:
+\begin{equation}
+    \begin{split}
+    & \bullet ~ x = r * \cos(\theta) \\
+    & \bullet ~ y = r * \sin(\theta) \\
+    \end{split}
+\end{equation}
+
+And since we want uniform points on the disk and the disk area is $\pi$ our pdf becomes
+\begin{equation}
+p(\omega) =
+\begin{cases}
+    \frac{1}{\pi},& \text{if } |\omega| < 1\\
+    0,              & \text{else}
+\end{cases}
+\end{equation}
 
 **Warping Visualization:**
 
-<p style="text-align:center;"><img src="images/warp-template.png" alt="Uniform Disk Warp"/></p>
+<p style="text-align:center;"><img src="images/disk_warp.png" alt="Uniform Disk Warp" /></p>
 
 **$\chi^2$ Hypothesis Test Outcome:**
 
-<p style="text-align:center;"><img src="images/chi2-template.png" alt="Uniform Disk Chi2 Test"/></p>
+<p style="text-align:center;"><img src="images/disk_chi.png" alt="Uniform Disk Chi2 Test" /></p>
 
 
 # Square to Uniform Sphere
-**Time spent on this task:**
+**Time spent on this task: 15 minutes**
+From the lecture we saw that the way to warp is the following:
+\begin{equation}
+    \begin{split}
+    & \bullet ~ \omega_z = 2\xi_2 - 1 \\
+    & \bullet ~ r = \sqrt{1 - \omega_z^2} \\
+    & \bullet ~ \phi = 2\pi\xi_2 \\
+    & \bullet ~ \omega_x = r * \cos(\phi) \\
+    & \bullet ~ \omega_y = r * \sin(\phi) \\
+    \end{split}
+\end{equation}
 
-**Describe your implementation of `Warp::squareToUniformSphere` and the associated PDF.**
+and since the area of a unit sphere is $4\pi$ our pdf becomes:
 
-...
+\begin{equation}
+p(\omega) =
+\begin{cases}
+    \frac{1}{4\pi},& \text{if } |\omega| == 1\\
+    0,              & \text{else}
+\end{cases}
+\end{equation}
+
+In my code I assume that $\omega$ is a unit vector
 
 **Warping Visualization:**
 
-<p style="text-align:center;"><img src="images/warp-template.png" alt="Uniform Sphere Warp"/></p>
+<p style="text-align:center;"><img src="images/sphere_warp.png" alt="Uniform Sphere Warp" /></p>
 
 **$\chi^2$ Hypothesis Test Outcome:**
 
-<p style="text-align:center;"><img src="images/chi2-template.png" alt="Uniform Sphere Chi2 Test"/></p>
+<p style="text-align:center;"><img src="images/sphere_chi.png" alt="Uniform Sphere Chi2 Test" /></p>
 
 
 # Square to Uniform Hemisphere
-**Time spent on this task:**
+**Time spent on this task: 20 minutes**
 
-**Describe your implementation of `Warp::squareToUniformHemisphere` and the associated PDF.**
+The warping here is done exactly the same except now we only want positive $\omega_z$ values, so $\omega_z = 2\xi_2 - 1$ simply becomes $\omega_z = \xi_2$
 
-...
+now our total area is $2\pi$ so our pdf becomes
+
+\begin{equation}
+p(\omega) =
+\begin{cases}
+    \frac{1}{2\pi},& \text{if } |\omega| == 1 \text{ and } \omega_z > 0 \\
+    0,              & \text{else}
+\end{cases}
+\end{equation}
+
+again we assume that $\omega$ is a unit vector in the code
 
 **Warping Visualization:**
 
-<p style="text-align:center;"><img src="images/warp-template.png" alt="Uniform Hemisphere Warp"/></p>
+<p style="text-align:center;"><img src="images/hemisphere_warp.png" alt="Uniform Hemisphere Warp" /></p>
 
 **$\chi^2$ Hypothesis Test Outcome:**
 
-<p style="text-align:center;"><img src="images/chi2-template.png" alt="Uniform Hemisphere Chi2 Test"/></p>
+<p style="text-align:center;"><img src="images/hemisphere_chi.png" alt="Uniform Hemisphere Chi2 Test" /></p>
 
 
 # Square to Uniform Spherical Cap
-**Time spent on this task:**
+**Time spent on this task: 30 minutes**
 
-**Describe your implementation of `Warp::squareToUniformSphericalCap` and the associated PDF.**
+This again works just like the hemispherical warping except now we must warp the $\omega_z$ to $[cosThetaMax, 1]$
 
-...
+so $\omega_z = 2\xi_2 - 1$ simply becomes $\omega_z = (1 - maxThetaCos) * \xi_2 + maxThetaCos$
+
+Now our total area is $2\pi * (1 - cosThetaMax)$ so our pdf becomes
+
+\begin{equation}
+p(\omega) =
+\begin{cases}
+    \frac{1}{2\pi (1 - cosThetaMax)},& \text{if } |\omega| == 1 \text{ and }  \omega_z > cosThetaMax \\
+    0,              & \text{else}
+\end{cases}
+\end{equation}
 
 **Warping Visualization:**
 
-<p style="text-align:center;"><img src="images/warp-template.png" alt="Uniform Spherical Cap Warp"/></p>
+<p style="text-align:center;"><img src="images/sphere_cap2_warp.png" alt="Uniform Spherical Cap Warp" /></p>
 
 **$\chi^2$ Hypothesis Test Outcome:**
 
-<p style="text-align:center;"><img src="images/chi2-template.png" alt="Uniform Spherical Cap Chi2 Test"/></p>
+<p style="text-align:center;"><img src="images/sphere_cap2_chi.png" alt="Uniform Spherical Cap Chi2 Test" /></p>
 
 
 # Square to Cosine Hemisphere
-**Time spent on this task:**
+**Time spent on this task: 20 minutes**
 
-**Describe your implementation of `Warp::squareToCosineHemisphere` and the associated PDF.**
+As mentioned in the lecture we can simply warp to a point on the disk and project it onto the hemisphere.
+So $\omega_x$ and $\omega_y$ are generated on a disk and  $\omega_z = \sqrt{1-r^2} = \sqrt{1 - \xi_1}$.
 
-...
+and our pdf becomes:
+
+\begin{equation}
+p(\omega) =
+\begin{cases}
+    \frac{\omega_z}{\pi },& \text{if } |\omega| == 1 \text{ and }  \omega_z > 0 \\
+    0,              & \text{else}
+\end{cases}
+\end{equation}
 
 **Warping Visualization:**
 
-<p style="text-align:center;"><img src="images/warp-template.png" alt="Cosine Hemisphere Warp"/></p>
+<p style="text-align:center;"><img src="images/hemisphere_cos_warp.png" alt="Cosine Hemisphere Warp" /></p>
 
 **$\chi^2$ Hypothesis Test Outcome:**
 
-<p style="text-align:center;"><img src="images/chi2-template.png" alt="Cosine Hemisphere Chi2 Test"/></p>
+<p style="text-align:center;"><img src="images/hemisphere_cos_chi.png" alt="Cosine Hemisphere Chi2 Test" /></p>
 
 
 # Square to Beckmann
 
-(Please use the provided LaTeX template to answer the questions in this section. For LaTeX math symbols and formulas, referring to this [cheatsheet](http://tug.ctan.org/info/undergradmath/undergradmath.pdf) is recommended.)
+**Time spent on this task: 1 hour**
 
-**Time spent on this task:**
+I did not solve the first integral (as it is here) when I made my code (I based it off the method in the book).
 
-**Show your derivation of $\int_0^{2\pi}\int_0^{\frac{\pi}{2}}p(\theta, \phi)~d\theta d\phi = 1$ for Beckmann distribution**: 
+**Show your derivation of $\int_0^{2\pi}\int_0^{\frac{\pi}{2}}p(\theta, \phi)~d\theta d\phi = 1$ for Beckmann distribution**:
 
 \begin{equation}
     \begin{split}
     \bullet ~ P(\theta_0, \phi_0) & = \int_0^{\phi_0}\int_0^{\theta_0}p(\theta, \phi)~d\theta d\phi \\
                         & = \int_0^{\phi_0}\int_0^{\theta_0}\frac{e^{\frac{-\tan^2\theta}{\alpha^2}}}{\pi \alpha^2 \cos^4\theta} \cos\theta \sin\theta ~d\theta d\phi \\
-                        & = ... \\
-                        & = ... \Bigg|_{...}^{...} \\
-                        & = ... \\
-    \bullet ~ P(\frac{\pi}{2}, 2\pi) & = ...\\
+                        & = \frac{1}{\pi}\int_0^{\phi_0}\int_1^{\cos(\theta_0)}\frac{-e^{\frac{x^2 - 1}{\alpha^2 x^2}}}{\alpha^2 x^3} ~dx d\phi \quad ,x = \cos(\theta) \quad dx = -sin(\theta)d\theta \\
+                        & = \frac{1}{2\pi}\int_0^{\phi_0}\int_{\cos(\theta_0)}^{1}\frac{2}{\alpha^2 x^3}e^{\frac{x^2 - 1}{\alpha^2 x^2}} ~dx d\phi \\
+                        & = \frac{1}{2\pi}\int_0^{\phi_0}\left[e^{\frac{x^2 - 1}{\alpha^2 x^2}}\right]_{\cos(\theta_0)}^{1} d\phi \\
+                        & = \frac{1}{2\pi}\int_0^{\phi_0}(1 - e^{\frac{-\tan^2\theta_0}{\alpha^2}}) d\phi \\
+                        & = \frac{(1 - e^{\frac{-\tan^2\theta_0}{\alpha^2}}) \phi_0}{2\pi} \\
+
+    \bullet ~ P(\frac{\pi}{2}, 2\pi) & = \frac{(1 - e^{\frac{-\tan^2\frac{\pi}{2}}{\alpha^2}}) 2\pi}{2\pi} \\
+                               & = (1 - 0) \\
                                & = 1
     \end{split}
 \end{equation}
 
-**Show your derivation of the Beckmann distribution sampling strategy by inverting the CDF, given random uniform samples $\xi_1, \xi_2$**: 
+**Show your derivation of the Beckmann distribution sampling strategy by inverting the CDF, given random uniform samples $\xi_1, \xi_2$**:
 \begin{equation}
     \begin{split}
     & \bullet ~ p(\theta, \phi) = \frac{e^{\frac{-\tan^2\theta}{\alpha^2}}}{\pi \alpha^2 \cos^4\theta} \cos\theta \sin\theta \\
-    & \bullet ~ ... \\
-    & \bullet ~ \phi = ... \\
-    & \bullet ~ \theta = ... \\
+    & \bullet ~ p(\theta) = \int_0^{2\pi}p(\theta, \phi)~d\phi = 2\pi p(\theta, \phi) \\
+    & \bullet ~ P(\theta) = \int_0^{\theta}2\pi p(\theta′, \phi)~d\theta′) = 1 - e^{\frac{-\tan^2\theta_0}{\alpha^2}} = 1 - e^{\frac{\cos^2(\theta_0) - 1}{\alpha^2 \cos^2(\theta_0)}} \\
+    & \bullet ~ p(\phi | \theta) = \frac{p(\theta, \phi)}{p(\theta)} = \frac{1}{2\pi}\\
+    & \bullet ~ P(\phi | \theta) = \int_0^{\phi}p(\phi′ | \theta)~d\phi′ = \int_0^{\phi}\frac{1}{2\pi}~d\phi′ = \frac{\phi}{2\pi}\\
+    & \bullet ~ \theta = \cos^{-1}\sqrt{\frac{1}{1 -\alpha^2ln(1-\xi_1)}} \\
+    & \bullet ~ \phi = 2\pi\xi_2 \\
     & \bullet ~ Sampled ~ Point: \\
-    & ~~~~ x = ... \\
-    & ~~~~ y = ... \\
-    & ~~~~ z = ...
+
+    & ~~~~ x = \cos(\phi)\sin(\theta) = \cos(2\pi\xi_2)\sqrt{1 - \frac{1}{1 -\alpha^2ln(1-\xi_1)}} \\
+    & ~~~~ y = \sin(\phi)\sin(\theta) = \sin(2\pi\xi_2)\sqrt{1 - \frac{1}{1 -\alpha^2ln(1-\xi_1)}} \\
+    & ~~~~ z = \cos(\theta) = \sqrt{\frac{1}{1 -\alpha^2ln(1-\xi_1)}}
 
     \end{split}
 \end{equation}
 
+And the pdf simply becomes:
+
+\begin{equation}
+p(\omega) =
+\begin{cases}
+    \frac{e^{\frac{\omega_z^2 - 1}{\alpha^2 \omega_z^2}}}{\pi \alpha^2 \omega_z^3},& \text{if } |\omega| == 1 \text{ and }  \omega_z > 0 \\
+    0,              & \text{else}
+\end{cases}
+\end{equation}
+
+
 **Warping Visualization:**
 
-<p style="text-align:center;"><img src="images/warp-template.png" alt="Beckmann Warp"/></p>
+<p style="text-align:center;"><img src="images/beckmann_warp.png" alt="Beckmann Warp" /></p>
 
 **$\chi^2$ Hypothesis Test Outcome:**
 
-<p style="text-align:center;"><img src="images/chi2-template.png" alt="Beckmann Chi2 Test"/></p>
+<p style="text-align:center;"><img src="images/beckmann_chi.png" alt="Beckmann Chi2 Test" /></p>
 
 
 # Feedback
@@ -167,10 +254,10 @@ $$
 <script src="../resources/jquery.twentytwenty.js"></script>
 
 <script>
-$(window).load(function(){$(".twentytwenty-container").twentytwenty({default_offset_pct: 0.5});});
+    $(window).load(function () { $(".twentytwenty-container").twentytwenty({ default_offset_pct: 0.5 }); });
 </script>
 
 <!-- Markdeep: -->
-<script>var markdeepOptions = {onLoad: function() {$(".twentytwenty-container").twentytwenty({default_offset_pct: 0.5, move_slider_on_hover: true});},tocStyle:'none'};</script>
+<script>var markdeepOptions = { onLoad: function () { $(".twentytwenty-container").twentytwenty({ default_offset_pct: 0.5, move_slider_on_hover: true }); }, tocStyle: 'none' };</script>
 <script src="https://morgan3d.github.io/markdeep/latest/markdeep.min.js?" charset="utf-8"></script>
-<script>window.alreadyProcessedMarkdeep||(document.body.style.visibility="visible")</script>
+<script>window.alreadyProcessedMarkdeep || (document.body.style.visibility = "visible")</script>

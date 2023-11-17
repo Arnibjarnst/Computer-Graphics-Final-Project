@@ -26,8 +26,9 @@ NORI_NAMESPACE_BEGIN
 class Sphere : public Shape {
 public:
     Sphere(const PropertyList & propList) {
-        m_position = propList.getPoint3("center", Point3f());
+        m_position = propList.getPoint3("center", Point3f(0.0f));
         m_radius = propList.getFloat("radius", 1.f);
+        m_radius2 = m_radius * m_radius;
 
         m_bbox.expandBy(m_position - Vector3f(m_radius));
         m_bbox.expandBy(m_position + Vector3f(m_radius));
@@ -38,14 +39,31 @@ public:
     virtual Point3f getCentroid(uint32_t index) const override { return m_position; }
 
     virtual bool rayIntersect(uint32_t index, const Ray3f &ray, float &u, float &v, float &t) const override {
+        Vector3f oc = ray.o - m_position;
+        float A = ray.d.dot(ray.d);
+        float B = 2 * oc.dot(ray.d);
+        float C = oc.dot(oc) - m_radius * m_radius;
+        float D = B * B - 4 * A * C;
 
-	/* to be implemented */
-        return false;
+        if (D < 0) return false;
 
+        float Dsqrt = std::sqrt(D);
+        t = (- B - Dsqrt) / (2 * A);
+        if (t < ray.mint || t > ray.maxt) t = (-B + Dsqrt) / (2 * A);
+        else return true;
+
+        return t >= ray.mint && t <= ray.maxt;
     }
 
     virtual void setHitInformation(uint32_t index, const Ray3f &ray, Intersection & its) const override {
-        /* to be implemented */
+        its.p = ray(its.t);
+        Vector3f dir = (its.p - m_position).normalized();
+        its.geoFrame = Frame(dir);
+        its.shFrame = Frame(dir);
+        its.uv = Point2f(
+            std::atan2(dir.y(), dir.x()) * INV_TWOPI + 0.5,
+            std::asin(dir.z()) * INV_PI + 0.5
+        );
     }
 
     virtual void sampleSurface(ShapeQueryRecord & sRec, const Point2f & sample) const override {
@@ -76,6 +94,7 @@ public:
 protected:
     Point3f m_position;
     float m_radius;
+    float m_radius2;
 };
 
 NORI_REGISTER_CLASS(Sphere, "sphere");
