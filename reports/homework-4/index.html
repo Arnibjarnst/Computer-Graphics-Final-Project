@@ -28,6 +28,8 @@ $\omega_o = (-eta * \omega_{ix}, -eta * \omega_{iy}, \pm \sqrt {1 - eta^2 (1 - \
 
 and then I return $eta^2$ since the bsdf value should be $eta^2 * \frac{(1 - F)}{cos(\theta_i)}$ and I sample the refraction with probability 1-F
 
+All tests were passed
+
 # Part 2: Path Tracing
 
 ## BSDF Sampling
@@ -51,6 +53,7 @@ Then after the ray doesn´t intersect the scene or I break cause of the russian 
 
 Note: I start the russian roulette immediately which is I beleive why I have more noise than the reference images
 
+All tests were passed
 
 ## Multiple Importance Sampling
 **Time spent on this task: 2 hours**
@@ -80,9 +83,9 @@ The loop is now as follows:
 
 Then after the ray doesn´t intersect the scene or I break cause of the russian roulette I return L.
 
-
 Note: I start the russian roulette immediately which is I beleive why I have more noise than the reference images
 
+All tests were passed
 
 ## Validation
 **Comparison: CGL Triangle**
