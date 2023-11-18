@@ -8,14 +8,12 @@ Student Names: Arni Bjarnsteinsson and Gianluca Figini
 
 # Motivational Image
 
-_Include and describe your motivational image, how it conforms to this year's
-theme and how the selected features will help to achieve that_
+_The woodland village scene, featuring houses shaped like pine trees, embodies the competition theme, "The more you look," as it is designed to make viewers explore its intricaces. The dynamic lighting, facilitated by Homogeneous Volumetric Participating Media and Many Lights Sampling, adds depth to the scene, ensuring that the more viewers delve into the image, the more nuances and surprises they uncover._
 
 <img src="motivation.jpeg" alt="Motivational image" class="img-responsive">
+Dan Quattrochi, Cozy Forest-dwelling village, from _https://playgroundai.com/post/clf75omys06eps601hwyoxfse_ (18.11.23)
 
 # Selected Features
-
-Please fill out the tables while following the given structure as much as possible. Please remove this text, "2.1 Example", and "2.3 Student #2" (if you do not work in a group)
 
 ## Student #1
 
@@ -53,7 +51,12 @@ ID      | Short Name                |Points | Features (if required) & Comments
 5.5     | Intel's Open Image Denoise| 5     | -
 Total   |                           | 60    |
 
-_Describe how you plan to validate them and, if needed, provide some additional information here_
+_To validate the many lights sampling, I will compareimages rendered with and without this addition. A wrong implementation of this feature is likely to create unwanted shadows and highlights. On the other hand, if the implementation was correct, we should observe a decreased level of noise in the final reder._
+
+_Resampled Importance Sampling aims to reduce noise and improve convergence by allocating more samples to important regions. To validate this feature, I will compute the variance in the image, or in other simpler scenes. I expect this to be significantly smaller than in the case where RIS is not used. For some specific scenes, specialized test cases could be created._
+
+During the feature selection process, we consulted with Rajesh, who proposed the idea of incorporating procedural generation for the meshes of trees and houses. Although this option is not currently listed among the potential features, I am interested in implementing it. I would appreciate it if you could confirm whether this is feasible and provide information on the point value associated with this addition. This will help me accurately update my list of features.
+
 
 
 # Supplementary
