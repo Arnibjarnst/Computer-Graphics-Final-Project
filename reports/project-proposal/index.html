@@ -37,10 +37,10 @@ Total   |                           | 60    |
 
 
 To validate the homogeneous volumetric participating media, the spotlight and images as textures
- I will render test scenes in nori and some rendering software and do a comparision
+ I will render test scenes in nori and some rendering software and do a comparison
 
-The reason I chose these paramaters for the disney bsdf is because we´ll need the color, specular and roughness for most materials and
-on top of that we need the anisotropic for the tiles on the roofs and subsurface for the leaves, Then we can add some metallic materials
+The reason I chose these parameters for the Disney BSDF is because we'll need the color, specular and roughness for most materials and
+on top of that we need the anisotropic for the tiles on the roofs and subsurface for the leaves. We can add some metallic materials
 into the scene like lampposts which will benefit from the metallic property.
 Then I will verify either using https://github.com/wdas/brdf or by doing an image comparison.
 
@@ -67,9 +67,12 @@ ID      | Short Name                |Points | Features (if required) & Comments
 5.5     | Intel's Open Image Denoise| 5     | -
 Total   |                           | 60    |
 
-_To validate the many lights sampling, I will compareimages rendered with and without this addition. A wrong implementation of this feature is likely to create unwanted shadows and highlights. On the other hand, if the implementation was correct, we should observe a decreased level of noise in the final reder._
+To validate the many lights sampling, I will compareimages rendered with and without this addition. A wrong implementation of this feature is likely to create unwanted shadows and highlights. On the other hand, if the implementation was correct, we should observe a decreased level of noise in the final reder.
 
-_Resampled Importance Sampling aims to reduce noise and improve convergence by allocating more samples to important regions. To validate this feature, I will compute the variance in the image, or in other simpler scenes. I expect this to be significantly smaller than in the case where RIS is not used. For some specific scenes, specialized test cases could be created._
+Resampled Importance Sampling aims to reduce noise and improve convergence by allocating more samples to important regions. To validate this feature, I will compute the variance in the image, or in other simpler scenes. I expect this to be significantly smaller than in the case where RIS is not used. For some specific scenes, specialized test cases could be created.
+
+
+To validate the features of object instancing and mesh modeling, I will ensure that the generated mesh aligns with the intended design. Additionally, for the Euler cluster and Intel denoising features, my validation process will focus on confirming the operational functionality and verifying that these systems perform as expected.
 
 During the feature selection process, we consulted with Rajesh, who proposed the idea of incorporating procedural generation for the meshes of trees and houses. Although this option is not currently listed among the potential features, I am interested in implementing it. I would appreciate it if you could confirm whether this is feasible and provide information on the point value associated with this addition. This will help me accurately update my list of features.
 
