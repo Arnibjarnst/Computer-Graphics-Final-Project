@@ -28,18 +28,18 @@ nethz: abjarnsteins
 ID      | Short Name                |Points | Features (if required) & Comments
 --------|---------------------------|-------|----------------------------------
 15.4    | Homogeneous Volumetric Participating Media | 15 | -
-15.1    | Disney BSDF               | 15    | Color, Specular, Roughness, Metallic, Anisotropic, Subsurface
-10.6    | Mip-Mapping for texture   | 10    | -
-10.1    | Low Discrepancy Sampling  | 10    | -
-5.8     | Simple Emitters           | 5     | Spotlight
-5.1     | Images as Textures        | 5     | -
+15.5    | Disney BSDF               | 15    | Specular, Roughness, Metallic, Anisotropic, Subsurface
+10.10   | Mip-Mapping for texture   | 10    | -
+10.5    | Low Discrepancy Sampling  | 10    | -
+5.10    | Simple Emitters           | 5     | Spotlight
+5.3     | Images as Textures        | 5     | -
 Total   |                           | 60    |
 
 
 To validate the homogeneous volumetric participating media, the spotlight and images as textures
  I will render test scenes in nori and some rendering software and do a comparison
 
-The reason I chose these parameters for the Disney BSDF is because we'll need the color, specular and roughness for most materials and
+The reason I chose these parameters for the Disney BSDF is because we'll need the specular and roughness (and color) for most materials and
 on top of that we need the anisotropic for the tiles on the roofs and subsurface for the leaves. We can add some metallic materials
 into the scene like lampposts which will benefit from the metallic property.
 Then I will verify either using https://github.com/wdas/brdf or by doing an image comparison.
@@ -60,11 +60,11 @@ nethz: gfigini
 ID      | Short Name                |Points | Features (if required) & Comments
 --------|---------------------------|-------|----------------------------------
 30.5    | Many lights sampling      | 30    | -
-10.5    | Resampled Importance Sampling (RIS) | 10 | -
-5.18    | Modeling Meshes           | 5     | -
-5.17    | Rendering on the cluster  | 5     | -
-5.15    | Object instancing         | 5     | -
-5.5     | Intel's Open Image Denoise| 5     | -
+10.8    | Resampled Importance Sampling (RIS) | 10 | -
+5.20    | Modeling Meshes           | 5     | -
+5.19    | Rendering on the cluster  | 5     | -
+5.17    | Object instancing         | 5     | -
+5.7     | Intel's Open Image Denoise| 5     | -
 Total   |                           | 60    |
 
 To validate the many lights sampling, I will compareimages rendered with and without this addition. A wrong implementation of this feature is likely to create unwanted shadows and highlights. On the other hand, if the implementation was correct, we should observe a decreased level of noise in the final reder.
