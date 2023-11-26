@@ -12,3 +12,4 @@ Makefile
 .idea
 chi*test*.m
 scenes/pa*/**/*.exr
+validation/**/*.exr
