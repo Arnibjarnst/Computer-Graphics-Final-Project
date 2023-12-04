@@ -63,6 +63,7 @@ set(NORI_SOURCE_FILES
   include/nori/transform.h
   include/nori/vector.h
   include/nori/warp.h
+  include/nori/medium.h
 
   # Source code files
   src/bitmap.cpp
@@ -104,6 +105,13 @@ set(NORI_SOURCE_FILES
   src/path_mats.cpp
   src/path_mis.cpp
   src/pointlight.cpp
+  src/volumetric_path_mats.cpp
+  src/volumetric_path_mis.cpp
+  src/trivial_bsdf.cpp
+  src/homogeneous.cpp
+  src/medium.cpp
+  src/henyey_greenstein.cpp
+  src/isotropic.cpp
 )
 
 add_executable(nori ${NORI_SOURCE_FILES})
