@@ -181,12 +181,16 @@ std::string Mesh::toString() const {
         "  triangleCount = %i,\n"
         "  bsdf = %s,\n"
         "  emitter = %s\n"
+        "  interior_medium = %s,\n"
+        "  exterior_medium = %s,\n"
         "]",
         m_name,
         m_V.cols(),
         m_F.cols(),
         m_bsdf ? indent(m_bsdf->toString()) : std::string("null"),
-        m_emitter ? indent(m_emitter->toString()) : std::string("null")
+        m_emitter ? indent(m_emitter->toString()) : std::string("null"),
+        m_interior ? indent(m_interior->toString()) : std::string("null"),
+        m_exterior ? indent(m_exterior->toString()) : std::string("null")
     );
 }
 

@@ -54,7 +54,22 @@ void Shape::addChild(NoriObject *obj) {
             m_emitter = static_cast<Emitter *>(obj);
             m_emitter->setShape(static_cast<Shape*>(this));
             break;
+        case EMedium:
+            if (obj->getIdName() == "interior") {
+                if (m_interior)
+                    throw NoriException("There can only be one interior medium per bsdf!");
 
+                m_interior = static_cast<Medium*>(obj);
+            }
+            else if (obj->getIdName() == "exterior") {
+                if (m_exterior)
+                    throw NoriException("There can only be one exterior medium per bsdf!");
+                m_exterior = static_cast<Medium*>(obj);
+            }
+            else {
+                throw NoriException("medium name can only be interior/exterior");
+            }
+            break;
         default:
             throw NoriException("Shape::addChild(<%s>) is not supported!",
                                 classTypeName(obj->getClassType()));
