@@ -4,7 +4,66 @@
 
 **Report**
 
-**Prepare your project report. Feel free to completely replace this file!**
+Student Names: Árni Bjarnsteinsson and Gianluca Figini
+
+# Implemented features
+
+## Árni Bjarnsteinsson
+
+### Images as Textures 
+### Simple Emitters (Spotlight)
+### Low Discrepancy Sampling
+### Mip-Mapping for texture
+### Disney BSDF  
+### Homogeneous Volumetric Participating Media
+
+## Gianluca Figini
+
+### Intel's Open Image Denoise
+### Object instancing
+### Rendering on the cluster
+### Modeling Meshes
+### Resampled Importance Sampling (RIS)
+In importance sampling, samples are drawn from a probability density function $g$ with values proportional to the function being integrated. However, drawing samples from $g$ requires its integration. RIS provides an alternative approach: it involves obtaining multiple samples $x_i$ from a base distribution $p$, easier to integrate, and selecting one of these with a probability proportional to $g(x_i)/p(x_i)$. To implemet this feature, I've created some new integrators, both for direct illumiation and path tracing. 
+
+For direct illumination, our integrator estimates the value of the integral $\int_{H^2} f_r(x, \omega_i, \omega_o) L_i(x, \omega_i) \cos \theta_i \d \omega_i$. A good distribution to use for this estimation is $g(\omega_i) = pdf_{ems}(\omega_i) pdf_{mat}(\omega_i)$. On the other hand, there are multiple possible candidates for $p$: in the file `direct_ris_ems.cpp`, $p = pdf_{ems}$ is used, in `direct_ris_mats.cpp` we use $p = pdf_{mat}$, and in `direct_ris_hemi.cpp` $p$ is cosine distributed on the unit hemisphere.
+
+One can notice that for the EMS integrator, RIS shows the same artifacts present in the importance sampling. This is to be expected, since the sampling function used is the same.
+<div class="twentytwenty-container">
+    <img src="../../validation/ris/direct_ems/odyssey_ems.png" alt="Ems importance" class="img-responsive">
+    <img src="../../validation/ris/direct_ems/odyssey_ris5.png" alt="Ems RIS (M=5)" class="img-responsive">
+    <img src="../../validation/ris/direct_ems/odyssey_ris20.png" alt="Ems RIS (M=20)" class="img-responsive">
+</div>
+
+For the MAT integrator, we can notice that, because of the probability density used, RIS creates some of the artifacts seen for the EMS integrator. However, the noise in the region more distant from the light is significantly reduced.
+<div class="twentytwenty-container">
+    <img src="../../validation/ris/direct_mat/odyssey_mats.png" alt="Ems importance" class="img-responsive">
+    <img src="../../validation/ris/direct_mat/odyssey_ris5.png" alt="Ems RIS (M=5)" class="img-responsive">
+    <img src="../../validation/ris/direct_mat/odyssey_ris20.png" alt="Ems RIS (M=20)" class="img-responsive">
+</div>
+
+Similar results can be observed when sampling the cosine-weighted hemisphere.
+<div class="twentytwenty-container">
+    <img src="../../validation/ris/direct_hemi/odyssey_ris5.png" alt="Ems RIS (M=5)" class="img-responsive">
+    <img src="../../validation/ris/direct_hemi/odyssey_ris20.png" alt="Ems RIS (M=20)" class="img-responsive">
+</div>
+
+For global illumination, RIS can be used do estimate the BSDF value in a more robust way. In this case, RIS is used to select a direction upon encountering a diffuse surface. This selection is based on the probability density $g = pdf_{mat}$. I've integrated this new selection technique both in the `PathMAT` and in the `PathMIS` integrator.
+
+For the validation, I limited the samples per pixel to 32, to better observe the variance in the images. One can see that, for this application, RIS does not manage to have an effect as significat as in direct illumination. However, especially for the case M=20, a reduction of the noise can still be observed looking at the interior of bowl in the scene.
+<div class="twentytwenty-container">
+    <img src="../../validation/ris/path_mat/table_path_ris5.png" alt="Mat RIS (M=5)" class="img-responsive">
+    <img src="../../validation/ris/path_mat/table_path_ris20.png" alt="Mat RIS (M=20)" class="img-responsive">
+    <img src="../../validation/ris/path_mat/table_path_mat.png" alt="Mat w/o RIS" class="img-responsive">
+</div>
+
+<div class="twentytwenty-container">
+    <img src="../../validation/ris/path_mis/table_path_ris5.png" alt="Mis RIS (M=5)" class="img-responsive">
+    <img src="../../validation/ris/path_mis/table_path_ris20.png" alt="Mis RIS (M=20)" class="img-responsive">
+    <img src="../../validation/ris/path_mis/table_path_mis.png" alt="Mis w/o RIS" class="img-responsive">
+</div>
+
+### Many lights sampling
 
 <!-- Bootstrap core CSS and JavaScript -->
 
