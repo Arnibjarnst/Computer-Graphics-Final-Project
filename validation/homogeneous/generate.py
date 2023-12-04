@@ -20,7 +20,7 @@ albedo = [
     [0.5, 0.5, 0.5]
 ]
 
-sigma_t = [0.5, 0.5, 0.5, 20.0, 1.0]
+sigma_t = [1.0, 1.0, 1.0, 20.0, 1.0]
 
 for i in range(len(albedo)):
     params["shape.interior_medium.albedo.value.value"] = albedo[i]
@@ -30,6 +30,6 @@ for i in range(len(albedo)):
     # Render the scene
     img = mi.render(scene)
     # Write the rendered image to an EXR file
-    filename = f'cbox_{albedo[i][0]}_{sigma_t[i]}.exr'
+    filename = f'cbox_albedo={albedo[i][0]}_t={sigma_t[i]}.exr'
     mi.Bitmap(img).write(filename)
     print(f"writing to file: {filename}")
