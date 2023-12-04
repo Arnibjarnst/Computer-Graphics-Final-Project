@@ -42,7 +42,7 @@
 		</bsdf>
 	</mesh>
 
-	<mesh type="obj">
+	<mesh type="obj" id="medium">
 		<transform name="toWorld">
 			<translate value="0.75, 0.375, 0.375"/>
 			<scale value="0.7, 0.7, 0.7"/>
