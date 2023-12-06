@@ -20,6 +20,7 @@
 #define __NORI_CAMERA_H
 
 #include <nori/object.h>
+#include <nori/medium.h>
 
 NORI_NAMESPACE_BEGIN
 
@@ -64,6 +65,8 @@ public:
     /// Return the camera's reconstruction filter in image space
     const ReconstructionFilter *getReconstructionFilter() const { return m_rfilter; }
 
+    const Medium* getMedium() const { return m_medium; }
+
     /**
      * \brief Return the type of object (i.e. Mesh/Camera/etc.) 
      * provided by this instance
@@ -72,6 +75,7 @@ public:
 protected:
     Vector2i m_outputSize;
     ReconstructionFilter *m_rfilter;
+    Medium* m_medium = nullptr;
 };
 
 NORI_NAMESPACE_END

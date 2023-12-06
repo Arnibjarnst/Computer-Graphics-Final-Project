@@ -57,13 +57,13 @@ void Shape::addChild(NoriObject *obj) {
         case EMedium:
             if (obj->getIdName() == "interior") {
                 if (m_interior)
-                    throw NoriException("There can only be one interior medium per bsdf!");
+                    throw NoriException("There can only be one interior medium per mesh!");
 
                 m_interior = static_cast<Medium*>(obj);
             }
             else if (obj->getIdName() == "exterior") {
                 if (m_exterior)
-                    throw NoriException("There can only be one exterior medium per bsdf!");
+                    throw NoriException("There can only be one exterior medium per mesh!");
                 m_exterior = static_cast<Medium*>(obj);
             }
             else {

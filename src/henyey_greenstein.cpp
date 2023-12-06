@@ -6,7 +6,7 @@ NORI_NAMESPACE_BEGIN
 class HenyeyGreenstein : public PhaseFunction {
 public:
     HenyeyGreenstein(const PropertyList& propList) {
-        m_g = propList.getFloat("g", 0.5f);
+        m_g = propList.getFloat("g", 0.0f);
     }
 
     // TODO: Make more efficient

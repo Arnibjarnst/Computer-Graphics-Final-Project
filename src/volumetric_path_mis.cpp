@@ -3,6 +3,7 @@
 #include <nori/sampler.h>
 #include <nori/bsdf.h>
 #include <nori/warp.h>
+#include <nori/camera.h>
 
 NORI_NAMESPACE_BEGIN
 
@@ -29,12 +30,12 @@ public:
         Color3f t = 1.0f;
         Ray3f recursive_ray(ray);
         Intersection its;
-        const Medium* medium = nullptr;
+        const Medium* medium = scene->getCamera()->getMedium();
         float bsdfPdf = -1.0; // this means that we have discrete sampling (so infinty)
 
         for (long i = 0; ; i++) {
             // Find ray intersection
-            if (!scene->rayIntersect(recursive_ray, its)) {
+            if (!scene->rayIntersect(recursive_ray, its) && medium == nullptr) {
                 break;
             }
 
@@ -49,7 +50,7 @@ public:
 
                 MediumQueryRecord mRec(recursive_ray.d);
                 t *= medium->sample(mRec, sampler->next2D());
-                recursive_ray = Ray3f(its.p + dt * mRec.wi, mRec.wo);
+                recursive_ray = Ray3f(recursive_ray.o + dt * mRec.wi, mRec.wo);
             }
             else {
                 // light emitted from intersection point

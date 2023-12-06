@@ -117,6 +117,12 @@ public:
                     throw NoriException("Camera: tried to register multiple reconstruction filters!");
                 m_rfilter = static_cast<ReconstructionFilter *>(obj);
                 break;
+            case EMedium:
+                if (m_medium)
+                    throw NoriException("Camera: tried to register multiple mediums!");
+
+                m_medium = static_cast<Medium*>(obj);
+                break;
 
             default:
                 throw NoriException("Camera::addChild(<%s>) is not supported!",

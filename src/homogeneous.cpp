@@ -17,11 +17,11 @@ public:
     }
 
     virtual Color3f tr(float t) const override {
-        return std::exp(-sigma_t.mean() * t);
+        return std::exp(-sigma_t.mean() * t); // improve
     }
 
     virtual float fp(float sample) const override {
-        return -std::log(1 - sample) / sigma_t.mean();
+        return -std::log(1 - sample) / sigma_t.mean(); // improve
     }
 
     virtual Color3f sample(MediumQueryRecord& mRec, const Point2f &sample) const override {
