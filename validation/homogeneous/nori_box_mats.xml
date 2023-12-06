@@ -53,7 +53,7 @@
 			<color name="sigma_a" value="0.0 0.0 0.0"/>
 			<color name="sigma_s" value="1.0 1.0 1.0"/>
 			<phase type="henyeyGreenstein">
-				<float name="g" value="0.8"/>
+				<float name="g" value="0.0"/>
 			</phase>
 		</medium>
 	</mesh>

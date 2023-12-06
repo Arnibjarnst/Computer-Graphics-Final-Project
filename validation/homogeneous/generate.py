@@ -24,11 +24,10 @@ albedo = np.array([
     [0.0, 0.0, 0.0],
     [1.0, 1.0, 1.0],
     [0.75, 0.75, 0.75],
-    [0.75, 0.75, 0.75],
-    [0.5, 0.5, 0.5]
+    [0.75, 0.75, 0.75]
 ])
 
-sigma_t = np.array([1.0, 1.0, 1.0, 20.0, 1.0])
+sigma_t = np.array([1.0, 1.0, 1.0, 20.0])
 
 
 def main():
@@ -83,9 +82,15 @@ def main():
         # Render the scene
         img = mi.render(scene)
         # Write the rendered image to an EXR file
-        filename = f'cbox_mitsuba_{fileending}.exr'
-        mi.Bitmap(img).write(filename)
-        print(f"writing to file: {filename}")
+        filename_exr = f'cbox_mitsuba_{fileending}.exr'
+        filename_png = f'cbox_mitsuba_{fileending}.png'
+        bitmap = mi.Bitmap(img)
+        bitmap.write(filename_exr)
+        print(f"writing to file: {filename_exr}")
+        bitmap_small = bitmap.convert(mi.Bitmap.PixelFormat.RGB, mi.Struct.Type.UInt8, True)
+        bitmap_small.write(filename_png)
+        print(f"writing to file: {filename_png}")
+
 
 
 if __name__ == "__main__":
