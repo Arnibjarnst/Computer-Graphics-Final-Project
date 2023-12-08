@@ -10,12 +10,71 @@ Student Names: Árni Bjarnsteinsson and Gianluca Figini
 
 ## Árni Bjarnsteinsson
 
-### Images as Textures 
+### Images as Textures
 ### Simple Emitters (Spotlight)
 ### Low Discrepancy Sampling
 ### Mip-Mapping for texture
-### Disney BSDF  
+### Disney BSDF
 ### Homogeneous Volumetric Participating Media
+
+**Relevant files:**
+<ul>
+    <li> <code>medium.h</code></li>
+    <li> <code>medium.cpp</code></li>
+    <li> <code>henyey_greenstein.cpp</code></li>
+    <li> <code>isotropic.cpp</code></li>
+    <li> <code>homogeneous.cpp</code></li>
+    <li> <code>shape.h</code></li>
+    <li> <code>shape.cpp</code></li>
+    <li> <code>mesh.cpp</code></li>
+    <li> <code>sphere.cpp</code></li>
+    <li> <code>trivial_bsdf.cpp</code></li>
+    <li> <code>volumetric_path_mats.cpp</code></li>
+    <li> <code>volumetric_path_mis.cpp</code></li>
+    <li> <code>camera.h</code></li>
+    <li> <code>perspective.cpp</code></li>
+</ul>
+
+For one of my advanced features I implemented Volumetric Path Tracing (VPT) in our renderer. It features homogeneous participating media,
+various phase functions, MIS and a simple path tracer (MATS)
+
+Medium in the renderer can either be attached to geometric primitives (mesh/sphere) or to the camera. The user can attach an interior and an exterior
+medium to shapes and if no medium is attached to a shape then rays bouncing off that shape will stay in the same medium else it will take that shapes medium
+(no medium on one side means vacuum). The ray will initially be in the cameras medium. 
+
+I also created a trivial bsdf which allows users to create invisible medium boundaries.
+
+**Phase Functions**
+
+Phase functions are a very simple class with only one function, sample, that takes in a vector wi and samples a vector wo. The only reason it is a nori class
+in stead of a function is to be able to modularly attach it to media objects. I implemented 2 phase functions, an isotropic one and the Henyey-Greenstein phase function
+
+**Medium**
+
+Medium is a class that has a phase function and in the case of the homogoneous medium absorbing and scattering coefficients for each color channel. On top of that it
+has three methods, <code>tr()</code> to calculate the transmission over a given distance <code>fp()</code> to sample the distance to the next scattering location and <code>sample()</code>
+to sample a direction at a scattering location.
+
+The homogeneous medium 
+
+**Volumetric Integrators**
+
+I created two integrators one that only add light contribution on an intersection and one that uses multiple importance sampling (MIS) where it samples a random
+light source at every iteration
+
+<div class="twentytwenty-container">
+    <img src="../../validation/homogeneous/cbox_mis_albedo=0.0_t=1.0.png" alt="MIS albedo=0" class="img-responsive">
+    <img src="../../validation/homogeneous/cbox_mis_albedo=1.0_t=1.0.png" alt="MIS albedo=1" class="img-responsive">
+    <img src="../../validation/homogeneous/cbox_mitsuba_albedo=0.0_t=1.0.png" alt="Mitsuba albedo=0" class="img-responsive">
+    <img src="../../validation/homogeneous/cbox_mitsuba_albedo=1.0_t=1.0.png" alt="Mitsuba albedo=1" class="img-responsive">
+</div>
+
+<div class="twentytwenty-container">
+    <img src="../../validation/homogeneous/cbox_mis_albedo=0.75_t=1.0.png" alt="MIS sigma_t=1" class="img-responsive">
+    <img src="../../validation/homogeneous/cbox_mis_albedo=0.75_t=20.0.png" alt="MIS sigma_t=20" class="img-responsive">
+    <img src="../../validation/homogeneous/cbox_mitsuba_albedo=0.75_t=1.0.png" alt="Mitsuba sigma_t=1" class="img-responsive">
+    <img src="../../validation/homogeneous/cbox_mitsuba_albedo=0.75_t=20.0.png" alt="Mitsuba sigma_t=20" class="img-responsive">
+</div>
 
 ## Gianluca Figini
 
@@ -24,7 +83,7 @@ Student Names: Árni Bjarnsteinsson and Gianluca Figini
 ### Rendering on the cluster
 ### Modeling Meshes
 ### Resampled Importance Sampling (RIS)
-In importance sampling, samples are drawn from a probability density function $g$ with values proportional to the function being integrated. However, drawing samples from $g$ requires its integration. RIS provides an alternative approach: it involves obtaining multiple samples $x_i$ from a base distribution $p$, easier to integrate, and selecting one of these with a probability proportional to $g(x_i)/p(x_i)$. To implemet this feature, I've created some new integrators, both for direct illumiation and path tracing. 
+In importance sampling, samples are drawn from a probability density function $g$ with values proportional to the function being integrated. However, drawing samples from $g$ requires its integration. RIS provides an alternative approach: it involves obtaining multiple samples $x_i$ from a base distribution $p$, easier to integrate, and selecting one of these with a probability proportional to $g(x_i)/p(x_i)$. To implemet this feature, I've created some new integrators, both for direct illumiation and path tracing.
 
 For direct illumination, our integrator estimates the value of the integral $\int_{H^2} f_r(x, \omega_i, \omega_o) L_i(x, \omega_i) \cos \theta_i \d \omega_i$. A good distribution to use for this estimation is $g(\omega_i) = pdf_{ems}(\omega_i) pdf_{mat}(\omega_i)$. On the other hand, there are multiple possible candidates for $p$: in the file `direct_ris_ems.cpp`, $p = pdf_{ems}$ is used, in `direct_ris_mats.cpp` we use $p = pdf_{mat}$, and in `direct_ris_hemi.cpp` $p$ is cosine distributed on the unit hemisphere.
 
@@ -76,10 +135,10 @@ For the validation, I limited the samples per pixel to 32, to better observe the
 <script src="../resources/jquery.twentytwenty.js"></script>
 
 <script>
-$(window).load(function(){$(".twentytwenty-container").twentytwenty({default_offset_pct: 0.5});});
+    $(window).load(function () { $(".twentytwenty-container").twentytwenty({ default_offset_pct: 0.5 }); });
 </script>
 
 <!-- Markdeep: -->
-<script>var markdeepOptions = {onLoad: function() {$(".twentytwenty-container").twentytwenty({default_offset_pct: 0.5, move_slider_on_hover: true});},tocStyle:'none'};</script>
+<script>var markdeepOptions = { onLoad: function () { $(".twentytwenty-container").twentytwenty({ default_offset_pct: 0.5, move_slider_on_hover: true }); }, tocStyle: 'none' };</script>
 <script src="https://morgan3d.github.io/markdeep/latest/markdeep.min.js?" charset="utf-8"></script>
-<script>window.alreadyProcessedMarkdeep||(document.body.style.visibility="visible")</script>
+<script>window.alreadyProcessedMarkdeep || (document.body.style.visibility = "visible")</script>

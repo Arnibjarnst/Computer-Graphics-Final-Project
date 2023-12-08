@@ -48,7 +48,6 @@
 			<scale value="0.7, 0.7, 0.7"/>
 		</transform>
 		<string name="filename" value="../meshes/cube.obj"/>
-		<bsdf type="trivial"/>
 		<medium type="homogeneous" name="interior">
 			<color name="sigma_a" value="0.0 0.0 0.0"/>
 			<color name="sigma_s" value="1.0 1.0 1.0"/>

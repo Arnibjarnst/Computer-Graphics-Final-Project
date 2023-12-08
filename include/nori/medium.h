@@ -10,9 +10,17 @@ struct MediumQueryRecord {
 
     Vector3f wo;
 
+    float t;
+
+    float maxT;
+
     /// Create a new record for sampling the BSDF
     MediumQueryRecord(const Vector3f& wi)
-        : wi(wi) { }
+        : wi(wi), maxT(std::numeric_limits<float>::max()) { }
+
+    /// Create a new record for sampling the BSDF
+    MediumQueryRecord(const Vector3f& wi, float maxT)
+        : wi(wi), maxT(maxT) { }
 };
 
 /**
@@ -29,7 +37,7 @@ public:
 
     virtual float fp(const float sample) const = 0;
 
-    virtual Color3f sample(MediumQueryRecord& mRec, const Point2f& sample) const = 0;
+    virtual Color3f sample(MediumQueryRecord& mRec, Sampler *sampler) const = 0;
 
     virtual EClassType getClassType() const override { return EMedium; }
 

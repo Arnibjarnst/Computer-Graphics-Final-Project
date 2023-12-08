@@ -39,18 +39,18 @@ public:
                 break;
             }
 
-            float dt = medium != nullptr ? medium->fp(sampler->next1D()) : its.t;
+            //float dt = medium != nullptr ? medium->fp(sampler->next1D()) : its.t
+            MediumQueryRecord mRec(recursive_ray.d, its.t); // what is its.t when no intersection is found?
+            if (medium) t *= medium->sample(mRec, sampler);
+            else mRec.t = its.t;
 
-            if (dt < its.t) {
+            if (mRec.t < mRec.maxT) {
                 if (i > START_ROULETTE) {
                     float successProbability = std::min(0.99f, t.maxCoeff());
                     if (sampler->next1D() > successProbability) break;
                     t /= successProbability;
                 }
-
-                MediumQueryRecord mRec(recursive_ray.d);
-                t *= medium->sample(mRec, sampler->next2D());
-                recursive_ray = Ray3f(recursive_ray.o + dt * mRec.wi, mRec.wo);
+                recursive_ray = Ray3f(recursive_ray.o + mRec.t * mRec.wi, mRec.wo);
             }
             else {
                 // light emitted from intersection point

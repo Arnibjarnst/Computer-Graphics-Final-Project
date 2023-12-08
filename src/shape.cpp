@@ -33,7 +33,7 @@ void Shape::activate() {
     if (!m_bsdf) {
         /* If no material was assigned, instantiate a diffuse BRDF */
         m_bsdf = static_cast<BSDF *>(
-            NoriObjectFactory::createInstance("diffuse", PropertyList()));
+            NoriObjectFactory::createInstance("trivial", PropertyList()));
         m_bsdf->activate();
     }
 }

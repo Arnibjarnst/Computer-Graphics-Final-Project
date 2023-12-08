@@ -1,6 +1,7 @@
 #include <nori/medium.h>
 #include <nori/frame.h>
 #include <nori/texture.h>
+#include <nori/sampler.h>
 
 NORI_NAMESPACE_BEGIN
 
@@ -10,23 +11,28 @@ public:
     Homogeneous(const PropertyList& propList) {
         Color3f sigma_a = propList.getColor("sigma_a", Color3f(0.0f));
 
-        Color3f sigma_s = propList.getColor("sigma_s", Color3f(0.0f));
+        sigma_s = propList.getColor("sigma_s", Color3f(0.0f));
 
-        sigma_t = sigma_a + sigma_s;
+        sigma_t = sigma_a + sigma_s + Epsilon;
         albedo = sigma_s / sigma_t;
     }
 
     virtual Color3f tr(float t) const override {
-        return std::exp(-sigma_t.mean() * t); // improve
+        return (-sigma_t * t).exp();
     }
 
     virtual float fp(float sample) const override {
         return -std::log(1 - sample) / sigma_t.mean(); // improve
     }
 
-    virtual Color3f sample(MediumQueryRecord& mRec, const Point2f &sample) const override {
-        mRec.wo = m_pf->sample(mRec.wi, sample);
-        return albedo;
+    virtual Color3f sample(MediumQueryRecord& mRec, Sampler *sampler) const override {
+        int channel = int(sampler->next1D() * 3);
+        mRec.t = -std::log(1 - sampler->next1D()) / sigma_t[channel]; // is 1 - sample necessary ?
+        if (mRec.t >= mRec.maxT) {
+            return tr(mRec.maxT) /  (-sigma_t * mRec.maxT).exp().mean();
+        }
+        mRec.wo = m_pf->sample(mRec.wi, sampler->next2D());
+        return sigma_s * tr(mRec.t) / (sigma_t * (-sigma_t * mRec.t).exp()).mean();
     }
 
     virtual std::string toString() const override {
@@ -42,7 +48,7 @@ public:
         );
     }
 private:
-    Color3f albedo, sigma_t;
+    Color3f albedo, sigma_t, sigma_s;
 };
 
 NORI_REGISTER_CLASS(Homogeneous, "homogeneous");
