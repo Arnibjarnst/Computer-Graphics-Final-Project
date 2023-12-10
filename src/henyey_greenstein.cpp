@@ -10,7 +10,7 @@ public:
     }
 
     // TODO: Make more efficient
-	virtual Vector3f sample(Vector3f &wi, const Point2f& sample) const override {
+    virtual Vector3f sample(Vector3f &wi, const Point2f& sample) const override {
         float cosTheta;
         if (std::abs(m_g) < 1e-3)
             cosTheta = 1 - 2 * sample.x();
