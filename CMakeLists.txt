@@ -104,6 +104,8 @@ set(NORI_SOURCE_FILES
   src/path_mats.cpp
   src/path_mis.cpp
   src/pointlight.cpp
+  src/spotlight.cpp
+  src/spotlight_area.cpp
 )
 
 add_executable(nori ${NORI_SOURCE_FILES})

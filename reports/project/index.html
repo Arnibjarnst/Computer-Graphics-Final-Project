@@ -10,11 +10,53 @@ Student Names: Árni Bjarnsteinsson and Gianluca Figini
 
 ## Árni Bjarnsteinsson
 
-### Images as Textures 
+### Images as Textures
 ### Simple Emitters (Spotlight)
+
+**Relevant files:**
+<ul>
+    <li> <code>spotlight.cpp</code></li>
+    <li> <code>spotlight_area.cpp</code></li>
+</ul>
+
+**Implementation:**
+
+The implementation is very straight forward and is based on the pointlight, except now we also specify a maximum angle of illumnation and another (smaller) angle,
+called the falloff angle. The light contribution is exactly like the pointlight if we are within the falloff angle else it is linearly interpolated from 1 to 0
+till we reach the maximum angle.
+
+
+**Validation:**
+
+To validate our spotlight I created a scene in mitsuba and nori (note that the light intensity is slightly different but that is simply implementation detail in each renderer),
+I also compared scenes where I add an arealight to the scene.
+
+<div class="twentytwenty-container">
+    <img src="../../validation/spotlight/mitsuba_spotlight.png" alt="Mitsuba spotlight" class="img-responsive">
+    <img src="../../validation/spotlight/nori_spotlight.png" alt="Nori spotlight" class="img-responsive">
+    <img src="../../validation/spotlight/mitsuba_spotlight+arealight.png" alt="Mitsuba spotlight + arealight" class="img-responsive">
+    <img src="../../validation/spotlight/nori_spotlight+arealight.png" alt="Nori spotlight + arealight" class="img-responsive">
+</div>
+
+**Area spotlight**
+
+Then I also had the idea of combining these two types into one emitter which works as an arealight except we give the emitter 
+an inside and outside radiance values as well as maximum and falloff angles (outer and inner). Then the light contribution from a point is the inside radiance 
+when the angle is less than the falloff then linearly goes to the outside radiance.
+
+**Comparison:**
+
+<div class="twentytwenty-container">
+    <img src="../../validation/spotlight/nori_spotlight_area.png" alt="Nori area spotlight" class="img-responsive">
+    <img src="../../validation/spotlight/nori_spotlight+arealight.png" alt="Nori spotlight + arealight" class="img-responsive">
+    <img src="../../validation/spotlight/nori_arealight.png" alt="Nori arealight" class="img-responsive">
+</div>
+
+As we can see this gives smoother shadows.
+
 ### Low Discrepancy Sampling
 ### Mip-Mapping for texture
-### Disney BSDF  
+### Disney BSDF
 ### Homogeneous Volumetric Participating Media
 
 ## Gianluca Figini
@@ -24,7 +66,7 @@ Student Names: Árni Bjarnsteinsson and Gianluca Figini
 ### Rendering on the cluster
 ### Modeling Meshes
 ### Resampled Importance Sampling (RIS)
-In importance sampling, samples are drawn from a probability density function $g$ with values proportional to the function being integrated. However, drawing samples from $g$ requires its integration. RIS provides an alternative approach: it involves obtaining multiple samples $x_i$ from a base distribution $p$, easier to integrate, and selecting one of these with a probability proportional to $g(x_i)/p(x_i)$. To implemet this feature, I've created some new integrators, both for direct illumiation and path tracing. 
+In importance sampling, samples are drawn from a probability density function $g$ with values proportional to the function being integrated. However, drawing samples from $g$ requires its integration. RIS provides an alternative approach: it involves obtaining multiple samples $x_i$ from a base distribution $p$, easier to integrate, and selecting one of these with a probability proportional to $g(x_i)/p(x_i)$. To implemet this feature, I've created some new integrators, both for direct illumiation and path tracing.
 
 For direct illumination, our integrator estimates the value of the integral $\int_{H^2} f_r(x, \omega_i, \omega_o) L_i(x, \omega_i) \cos \theta_i \d \omega_i$. A good distribution to use for this estimation is $g(\omega_i) = pdf_{ems}(\omega_i) pdf_{mat}(\omega_i)$. On the other hand, there are multiple possible candidates for $p$: in the file `direct_ris_ems.cpp`, $p = pdf_{ems}$ is used, in `direct_ris_mats.cpp` we use $p = pdf_{mat}$, and in `direct_ris_hemi.cpp` $p$ is cosine distributed on the unit hemisphere.
 
@@ -76,10 +118,10 @@ For the validation, I limited the samples per pixel to 32, to better observe the
 <script src="../resources/jquery.twentytwenty.js"></script>
 
 <script>
-$(window).load(function(){$(".twentytwenty-container").twentytwenty({default_offset_pct: 0.5});});
+    $(window).load(function () { $(".twentytwenty-container").twentytwenty({ default_offset_pct: 0.5 }); });
 </script>
 
 <!-- Markdeep: -->
-<script>var markdeepOptions = {onLoad: function() {$(".twentytwenty-container").twentytwenty({default_offset_pct: 0.5, move_slider_on_hover: true});},tocStyle:'none'};</script>
+<script>var markdeepOptions = { onLoad: function () { $(".twentytwenty-container").twentytwenty({ default_offset_pct: 0.5, move_slider_on_hover: true }); }, tocStyle: 'none' };</script>
 <script src="https://morgan3d.github.io/markdeep/latest/markdeep.min.js?" charset="utf-8"></script>
-<script>window.alreadyProcessedMarkdeep||(document.body.style.visibility="visible")</script>
+<script>window.alreadyProcessedMarkdeep || (document.body.style.visibility = "visible")</script>
