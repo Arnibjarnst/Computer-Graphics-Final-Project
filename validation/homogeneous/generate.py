@@ -12,7 +12,7 @@ BASE_DIR = pathlib.Path(__file__).absolute().parent.parent.parent
 os.chdir(BASE_DIR / "validation/homogeneous")
 mitsuba_file_name = "mitsuba_box"
 mitsuba_dir = BASE_DIR / "validation/homogeneous" / f"{mitsuba_file_name}.xml"
-nori_file_name = "nori_box_mis"
+nori_file_name = "nori_box_mis_simple"
 nori_dir = BASE_DIR / "validation/homogeneous" / f"{nori_file_name}.xml"
 
 
@@ -24,10 +24,17 @@ albedo = np.array([
     [0.0, 0.0, 0.0],
     [1.0, 1.0, 1.0],
     [0.75, 0.75, 0.75],
-    [0.75, 0.75, 0.75]
+    [0.75, 0.75, 0.75],
+    [0.1, 0.5, 0.5]
 ])
 
-sigma_t = np.array([1.0, 1.0, 1.0, 20.0])
+sigma_t = np.array([
+    [1.0, 1.0, 1.0],
+    [1.0, 1.0, 1.0],
+    [1.0, 1.0, 1.0],
+    [20.0, 20.0, 20.0],
+    [10.0, 1.0, 5.0]
+])
 
 
 def main():
@@ -54,8 +61,8 @@ def main():
 
     tree = ET.parse(str(nori_dir))
     root = tree.getroot()
-    sigma_a = root[6][3][0].attrib
-    sigma_s = root[6][3][1].attrib
+    sigma_a = root[6][2][0].attrib
+    sigma_s = root[6][2][1].attrib
 
     scene = mi.load_file(str(mitsuba_dir))
     mi_params = mi.traverse(scene)
@@ -66,7 +73,7 @@ def main():
         sigma_s["value"] = " ".join(np.char.mod('%f', ss))
         sigma_a["value"] = " ".join(np.char.mod('%f', -(ss - sigma_t[i])))
 
-        fileending = f"albedo={albedo[i][0]}_t={sigma_t[i]}"
+        fileending = f"albedo={albedo[i][0]}_t={sigma_t[i][0]}"
         nori_xml = f"cbox_mis_{fileending}.xml"
         with open(nori_xml, "wb") as f:
             f.write(ET.tostring(root))

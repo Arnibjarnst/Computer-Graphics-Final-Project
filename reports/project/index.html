@@ -20,7 +20,6 @@ Student Names: Árni Bjarnsteinsson and Gianluca Figini
 **Relevant files:**
 <ul>
     <li> <code>medium.h</code></li>
-    <li> <code>medium.cpp</code></li>
     <li> <code>henyey_greenstein.cpp</code></li>
     <li> <code>isotropic.cpp</code></li>
     <li> <code>homogeneous.cpp</code></li>
@@ -29,7 +28,7 @@ Student Names: Árni Bjarnsteinsson and Gianluca Figini
     <li> <code>mesh.cpp</code></li>
     <li> <code>sphere.cpp</code></li>
     <li> <code>trivial_bsdf.cpp</code></li>
-    <li> <code>volumetric_path_mats.cpp</code></li>
+    <li> <code>volumetric_path_mis_simple.cpp</code></li>
     <li> <code>volumetric_path_mis.cpp</code></li>
     <li> <code>camera.h</code></li>
     <li> <code>perspective.cpp</code></li>
@@ -40,7 +39,7 @@ various phase functions, MIS and a simple path tracer (MATS)
 
 Medium in the renderer can either be attached to geometric primitives (mesh/sphere) or to the camera. The user can attach an interior and an exterior
 medium to shapes and if no medium is attached to a shape then rays bouncing off that shape will stay in the same medium else it will take that shapes medium
-(no medium on one side means vacuum). The ray will initially be in the cameras medium. 
+(no medium on one side means vacuum). The ray will initially be in the cameras medium.
 
 I also created a trivial bsdf which allows users to create invisible medium boundaries.
 
@@ -52,29 +51,58 @@ in stead of a function is to be able to modularly attach it to media objects. I 
 **Medium**
 
 Medium is a class that has a phase function and in the case of the homogoneous medium absorbing and scattering coefficients for each color channel. On top of that it
-has three methods, <code>tr()</code> to calculate the transmission over a given distance <code>fp()</code> to sample the distance to the next scattering location and <code>sample()</code>
-to sample a direction at a scattering location.
+has two methods, <code>tr()</code> to calculate the transmission over a given distance and <code>sample()</code> to sample a free path and
+a direction at the scattering location.
 
-The homogeneous medium 
+The homogeneous medium samples by choosing a random color channel, sampling with that channel extinction coefficient and then weighing the results with
+multiple importance sampling using the pdfs of all the channels.
 
 **Volumetric Integrators**
 
-I created two integrators one that only add light contribution on an intersection and one that uses multiple importance sampling (MIS) where it samples a random
-light source at every iteration
+I created two integrators, both basen on multiple importance sampling. One that considers media boundaries as occluding when sampling emitters in the scene, this one
+matches the volumetric integrator in mitsuba (MIS Simple). The other does not consider media boundaries occluding but calculates the transmittance of the shadow ray and multiplies
+it with the emitter sampling contribution (MIS). This gives better performance around boundaries.
+
+**Validation**
+
+Below are comparisions of the simple MIS integrator and the mitsuba integrator first with constant coefficients.
 
 <div class="twentytwenty-container">
-    <img src="../../validation/homogeneous/cbox_mis_albedo=0.0_t=1.0.png" alt="MIS albedo=0" class="img-responsive">
-    <img src="../../validation/homogeneous/cbox_mis_albedo=1.0_t=1.0.png" alt="MIS albedo=1" class="img-responsive">
-    <img src="../../validation/homogeneous/cbox_mitsuba_albedo=0.0_t=1.0.png" alt="Mitsuba albedo=0" class="img-responsive">
-    <img src="../../validation/homogeneous/cbox_mitsuba_albedo=1.0_t=1.0.png" alt="Mitsuba albedo=1" class="img-responsive">
+    <img src="../../validation/homogeneous/cbox_mis_albedo=0.0_t=1.0.png" alt="MIS &#963<sub>a</sub>=1 &#963<sub>s</sub>=0" class="img-responsive">
+    <img src="../../validation/homogeneous/cbox_mis_albedo=1.0_t=1.0.png" alt="MIS &#963<sub>a</sub>=0 &#963<sub>s</sub>=1" class="img-responsive">
+    <img src="../../validation/homogeneous/cbox_mitsuba_albedo=0.0_t=1.0.png" alt="Mitsuba &#963<sub>a</sub>=1 &#963<sub>s</sub>=0" class="img-responsive">
+    <img src="../../validation/homogeneous/cbox_mitsuba_albedo=1.0_t=1.0.png" alt="Mitsuba &#963<sub>a</sub>=0 &#963<sub>s</sub>=1" class="img-responsive">
 </div>
 
 <div class="twentytwenty-container">
-    <img src="../../validation/homogeneous/cbox_mis_albedo=0.75_t=1.0.png" alt="MIS sigma_t=1" class="img-responsive">
-    <img src="../../validation/homogeneous/cbox_mis_albedo=0.75_t=20.0.png" alt="MIS sigma_t=20" class="img-responsive">
-    <img src="../../validation/homogeneous/cbox_mitsuba_albedo=0.75_t=1.0.png" alt="Mitsuba sigma_t=1" class="img-responsive">
-    <img src="../../validation/homogeneous/cbox_mitsuba_albedo=0.75_t=20.0.png" alt="Mitsuba sigma_t=20" class="img-responsive">
+    <img src="../../validation/homogeneous/cbox_mis_albedo=0.75_t=1.0.png" alt="MIS &#963<sub>a</sub>=0.25 &#963<sub>s</sub>=0.75" class="img-responsive">
+    <img src="../../validation/homogeneous/cbox_mis_albedo=0.75_t=20.0.png" alt="MIS &#963<sub>a</sub>=5 &#963<sub>s</sub>=15" class="img-responsive">
+    <img src="../../validation/homogeneous/cbox_mitsuba_albedo=0.75_t=1.0.png" alt="Mitsuba &#963<sub>a</sub>=0.25 &#963<sub>s</sub>=0.75" class="img-responsive">
+    <img src="../../validation/homogeneous/cbox_mitsuba_albedo=0.75_t=20.0.png" alt="Mitsuba &#963<sub>a</sub>=5 &#963<sub>s</sub>=15" class="img-responsive">
 </div>
+
+I also compared my two integrators and as we can see that they converge to the same solution.
+
+<div class="twentytwenty-container">
+    <img src="../../validation/homogeneous/nori_box_mis_simple.png" alt="MIS simple spp=512" class="img-responsive">
+    <img src="../../validation/homogeneous/nori_box_mis_simple_8192.png" alt="MIS simple spp=8192" class="img-responsive">
+    <img src="../../validation/homogeneous/nori_box_mis.png" alt="MIS spp=512" class="img-responsive">
+    <img src="../../validation/homogeneous/nori_box_mis_8192.png" alt="MIS spp=8192" class="img-responsive">
+</div>
+
+
+I also compared scenes with spectrally varying absorption and scattering coefficients, $\sigma_a = [9.0, 0.5, 2.5], \sigma_s = [1.0, 0.5, 2.5]$. Here I compare my
+two integrator with the mitsuba renderer as well as using the MIS free path sampling strategy I also render one scene that simply uses the maximum extinction coefficient.
+As we can see using MIS for the free path sampling significantly reduces noise when the extinction coefficient has high variety.
+
+<div class="twentytwenty-container">
+    <img src="../../validation/homogeneous/nori_box_mis_color_max_coeff.png" alt="MIS simple max coeff" class="img-responsive">
+    <img src="../../validation/homogeneous/cbox_mis_albedo=0.1_t=10.0.png" alt="MIS simple" class="img-responsive">
+    <img src="../../validation/homogeneous/cbox_mitsuba_albedo=0.1_t=10.0.png" alt="Mitsuba" class="img-responsive">
+    <img src="../../validation/homogeneous/nori_box_mis_color.png" alt="MIS" class="img-responsive">
+
+</div>
+
 
 ## Gianluca Figini
 

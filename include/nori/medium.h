@@ -23,19 +23,37 @@ struct MediumQueryRecord {
         : wi(wi), maxT(maxT) { }
 };
 
+class PhaseFunction : public NoriObject {
+public:
+    virtual Vector3f sample(Vector3f& wi, const Point2f& sample) const = 0;
+
+    virtual EClassType getClassType() const override { return EPhaseFunction; }
+};
+
 /**
  * \brief Superclass of all mediums
  */
 class Medium : public NoriObject {
 public:
     /// Release all memory
-    virtual ~Medium();
+    virtual ~Medium() {
+        delete m_pf;
+    }
 
-    virtual void addChild(NoriObject* child) override;
+    virtual void addChild(NoriObject* child) {
+        if (child->getClassType() == EPhaseFunction) {
+            if (m_pf)
+                throw NoriException(
+                    "Medium: tried to register multiple phase functions");
+            m_pf = static_cast<PhaseFunction*>(child);
+        }
+        else {
+            throw NoriException("Medium::addChild(<%s>) is not supported!",
+                classTypeName(child->getClassType()));
+        }
+    }
 
     virtual Color3f tr(const float t) const = 0;
-
-    virtual float fp(const float sample) const = 0;
 
     virtual Color3f sample(MediumQueryRecord& mRec, Sampler *sampler) const = 0;
 
@@ -43,14 +61,6 @@ public:
 
 protected:
     PhaseFunction* m_pf = nullptr; // phase function of the medium
-};
-
-
-class PhaseFunction : public NoriObject {
-public:
-    virtual Vector3f sample(Vector3f &wi, const Point2f &sample) const = 0;
-
-    virtual EClassType getClassType() const override { return EPhaseFunction; }
 };
 
 NORI_NAMESPACE_END

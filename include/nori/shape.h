@@ -23,6 +23,7 @@
 #include <nori/frame.h>
 #include <nori/bbox.h>
 #include <nori/medium.h>
+#include <nori/bsdf.h>
 
 NORI_NAMESPACE_BEGIN
 

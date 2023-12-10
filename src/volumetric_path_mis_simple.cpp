@@ -7,10 +7,10 @@
 
 NORI_NAMESPACE_BEGIN
 
-class VolPathMis : public Integrator {
+class VolPathMisSimple : public Integrator {
 public:
 
-    VolPathMis(const PropertyList& props) {}
+    VolPathMisSimple(const PropertyList& props) {}
     /**
      * \brief Sample the incident radiance along a ray
      *
@@ -51,7 +51,6 @@ public:
                 ray.o = ray(mRec.t);
                 ray.d = mRec.wo;
                 ray.update();
-                bsdfPdf = -1.0f;
             }
             else {
                 // light emitted from intersection point
@@ -88,13 +87,7 @@ public:
                     EmitterQueryRecord lightQuery = EmitterQueryRecord(its.p);
                     const Color3f radiance = light->sample(lightQuery, sampler->next2D());
 
-                    if (its.mesh->getInterior() || its.mesh->getExterior())
-                        lightQuery.shadowRay.medium = its.shFrame.n.dot(lightQuery.wi) > 0 ? its.mesh->getExterior() : its.mesh->getInterior();
-                    else
-                        lightQuery.shadowRay.medium = ray.medium;
-
-                    Color3f transmittance = 1.0f;
-                    if (lightQuery.pdf > 0 && !scene->rayIntersectTr(lightQuery.shadowRay, transmittance)) {
+                    if (lightQuery.pdf > 0 && !scene->rayIntersect(lightQuery.shadowRay)) {
                         Vector3f wo = its.shFrame.toLocal(lightQuery.wi);
                         BSDFQueryRecord bsdfEvalQuery = BSDFQueryRecord(
                             wi,
@@ -106,11 +99,13 @@ public:
 
                         const float wEm = lightQuery.pdf / (lightQuery.pdf / scene->getLights().size() + bsdf->pdf(bsdfEvalQuery));
 
+                        Color3f transmittance = ray.medium ? ray.medium->tr(lightQuery.shadowRay.maxt) : 1.0f;
+
                         L += wEm * t * std::abs(wo.z()) * bsdfValueToLight * radiance * transmittance;
                     }
                     bsdfPdf = bsdf->pdf(bsdfQuery);
                 }
-                else if (bsdf->isVisible()) {
+                else {
                     bsdfPdf = -1.0f; // infinity
                 }
 
@@ -129,9 +124,9 @@ public:
     };
 
     std::string toString() const {
-        return "VolPathMis[]";
+        return "VolPathMisSimple[]";
     }
 };
 
-NORI_REGISTER_CLASS(VolPathMis, "vol_path_mis");
+NORI_REGISTER_CLASS(VolPathMisSimple, "vol_path_mis_simple");
 NORI_NAMESPACE_END

@@ -50,7 +50,7 @@
 
 		<medium name="interior" id="fog" type="homogeneous">
 			<rgb name="albedo" value="1.0, 1.0, 1.0"/>
-			<float name="sigma_t" value="0.5"/>
+			<rgb name="sigma_t" value="1.0 1.0 1.0"/>
 			<phase type="hg">
 				<float name="g" value="0.8"/>
 			</phase>

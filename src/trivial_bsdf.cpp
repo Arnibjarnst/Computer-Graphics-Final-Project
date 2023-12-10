@@ -43,6 +43,10 @@ public:
         return Color3f(1.0f);
     }
 
+    virtual bool isVisible() const override {
+        return false;
+    }
+
     virtual std::string toString() const override {
         return "Trivial";
     }

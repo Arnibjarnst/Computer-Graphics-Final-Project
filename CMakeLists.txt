@@ -107,9 +107,9 @@ set(NORI_SOURCE_FILES
   src/pointlight.cpp
   src/volumetric_path_mats.cpp
   src/volumetric_path_mis.cpp
+  src/volumetric_path_mis_simple.cpp
   src/trivial_bsdf.cpp
   src/homogeneous.cpp
-  src/medium.cpp
   src/henyey_greenstein.cpp
   src/isotropic.cpp
 )
