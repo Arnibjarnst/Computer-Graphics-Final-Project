@@ -33,6 +33,8 @@ class NoriObject {
 public:
     enum EClassType {
         EScene = 0,
+        EInstance,
+        ESubScene,
         EMesh,
         ETexture,
         EBSDF,
