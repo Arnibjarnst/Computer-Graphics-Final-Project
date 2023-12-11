@@ -11,6 +11,17 @@ Student Names: Árni Bjarnsteinsson and Gianluca Figini
 ## Árni Bjarnsteinsson
 
 ### Images as Textures
+
+**Relevant files:**
+<ul>
+    <li> <code>image_texture.cpp</code></li>
+</ul>
+
+<div class="twentytwenty-container">
+    <img src="../../validation/imagesAsTextures/mitsuba_texture.png" alt="Mitsuba" class="img-responsive">
+    <img src="../../validation/imagesAsTextures/nori_texture.png" alt="Nori" class="img-responsive">
+</div>
+
 ### Simple Emitters (Spotlight)
 
 **Relevant files:**
@@ -40,8 +51,8 @@ I also compared scenes where I add an arealight to the scene.
 
 **Area spotlight**
 
-Then I also had the idea of combining these two types into one emitter which works as an arealight except we give the emitter 
-an inside and outside radiance values as well as maximum and falloff angles (outer and inner). Then the light contribution from a point is the inside radiance 
+Then I also had the idea of combining these two types into one emitter which works as an arealight except we give the emitter
+an inside and outside radiance values as well as maximum and falloff angles (outer and inner). Then the light contribution from a point is the inside radiance
 when the angle is less than the falloff then linearly goes to the outside radiance.
 
 **Comparison:**
