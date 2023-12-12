@@ -45,6 +45,11 @@ template <typename _PointType, typename _VectorType> struct TRay {
     VectorType dRcp; ///< Componentwise reciprocals of the ray direction
     Scalar mint;     ///< Minimum position on the ray segment
     Scalar maxt;     ///< Maximum position on the ray segment
+    bool isDifferential;
+    PointType ox;
+    PointType oy;
+    VectorType dx;
+    VectorType dy;
     const Medium* medium;
 
     /// Construct a new ray
@@ -66,11 +71,14 @@ template <typename _PointType, typename _VectorType> struct TRay {
     /// Copy constructor
     TRay(const TRay &ray) 
      : o(ray.o), d(ray.d), dRcp(ray.dRcp),
-       mint(ray.mint), maxt(ray.maxt), medium(ray.medium) { }
+       mint(ray.mint), maxt(ray.maxt), medium(ray.medium),
+       ox(ray.ox), oy(ray.oy), dx(ray.dx), dy(ray.dy) { }
 
     /// Copy a ray, but change the covered segment of the copy
     TRay(const TRay &ray, Scalar mint, Scalar maxt) 
-     : o(ray.o), d(ray.d), dRcp(ray.dRcp), mint(mint), maxt(maxt), medium(ray.medium) { }
+     : o(ray.o), d(ray.d), dRcp(ray.dRcp),
+       mint(mint), maxt(maxt), medium(ray.medium),
+       ox(ray.ox), oy(ray.oy), dx(ray.dx), dy(ray.dy) { }
 
     /// Update the reciprocal ray directions after changing 'd'
     void update() {
@@ -86,6 +94,8 @@ template <typename _PointType, typename _VectorType> struct TRay {
         result.o = o; result.d = -d; result.dRcp = -dRcp;
         result.mint = mint; result.maxt = maxt;
         result.medium = medium; // unsure if this works
+        result.ox = ox; result.oy = oy;
+        result.dx = dx; result.dy = dy;
         return result;
     }
 
@@ -100,44 +110,6 @@ template <typename _PointType, typename _VectorType> struct TRay {
                 "  medium = %s",
                 "]", o.toString(), d.toString(), mint, maxt, medium->toString());
     }
-};
-
-struct Ray3fdiff : TRay<Point3f, Vector3f> {
-
-};
-
-template <typename _PointType, typename _VectorType>
-struct TRayDifferential : TRay<_PointType, _VectorType> {
-
-    /// Construct a new ray
-    TRayDifferential() : mint(Epsilon),
-        maxt(std::numeric_limits<Scalar>::infinity()), medium(nullptr) { }
-
-    /// Construct a new ray
-    TRayDifferential(const PointType& o, const VectorType& d) : o(o), d(d),
-        mint(Epsilon), maxt(std::numeric_limits<Scalar>::infinity()), medium(nullptr) {
-        update();
-    }
-
-    /// Construct a new ray
-    TRayDifferential(const PointType& o, const VectorType& d,
-        Scalar mint, Scalar maxt) : o(o), d(d), mint(mint), maxt(maxt), medium(nullptr) {
-        update();
-    }
-
-    /// Copy constructor
-    TRayDifferential(const TRay& ray)
-        : o(ray.o), d(ray.d), dRcp(ray.dRcp),
-        mint(ray.mint), maxt(ray.maxt), medium(ray.medium) { }
-
-    /// Copy a ray, but change the covered segment of the copy
-    TRayDifferential(const TRay& ray, Scalar mint, Scalar maxt)
-        : o(ray.o), d(ray.d), dRcp(ray.dRcp), mint(mint), maxt(maxt), medium(ray.medium) { }
-
-    PointType ox;
-    PointType oy;
-    VectorType dx;
-    VectorType dy;
 };
 
 NORI_NAMESPACE_END

@@ -116,8 +116,6 @@ typedef TBoundingBox<Point3i>   BoundingBox3i;
 typedef TBoundingBox<Point4i>   BoundingBox4i;
 typedef TRay<Point2f, Vector2f> Ray2f;
 typedef TRay<Point3f, Vector3f> Ray3f;
-typedef TRayDifferential<Point2f, Vector2f> Ray2fd;
-typedef TRayDifferential<Point3f, Vector3f> Ray3fd;
 
 /// Some more forward declarations
 class BSDF;

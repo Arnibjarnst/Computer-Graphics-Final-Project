@@ -96,34 +96,6 @@ public:
             samplePosition.x() * m_invOutputSize.x(),
             samplePosition.y() * m_invOutputSize.y(), 0.0f);
 
-        /* Turn into a normalized ray direction, and
-           adjust the ray interval accordingly */
-        Vector3f d = nearP.normalized();
-        float invZ = 1.0f / d.z();
-
-        ray.o = m_cameraToWorld * Point3f(0, 0, 0);
-        ray.d = m_cameraToWorld * d;
-        ray.mint = m_nearClip * invZ;
-        ray.maxt = m_farClip * invZ;
-        ray.medium = m_medium;
-        ray.update();
-
-        return Color3f(1.0f);
-    }
-
-    Color3f sampleRayDifferential(Ray3fd& ray,
-        const Point2f& samplePosition,
-        const Point2f& apertureSample) const {
-        
-        /* Compute the corresponding position on the
-           near plane (in local camera space) */
-        Point3f nearP = m_sampleToCamera * Point3f(
-            samplePosition.x() * m_invOutputSize.x(),
-            samplePosition.y() * m_invOutputSize.y(), 0.0f);
-
-
-        // does direction even matter ???
-        // move sample one pixel in x direction (closer to center)
         Point3f nearPx = nearP + (nearP.x() < m_outputSize.x() / 2 ? Point3f(1.0f, 0.0f, 0.0f) : Point3f(-1.0f, 0.0f, 0.0f));
         // move sample one pixel in y direction (closer to center)
         Point3f nearPy = nearP + (nearP.y() < m_outputSize.y() / 2 ? Point3f(0.0f, 1.0f, 0.0f) : Point3f(0.0f, -1.0f, 0.0f));
@@ -131,7 +103,6 @@ public:
         /* Turn into a normalized ray direction, and
            adjust the ray interval accordingly */
         Vector3f d = nearP.normalized();
-
         float invZ = 1.0f / d.z();
 
         ray.o = ray.ox = ray.oy = m_cameraToWorld * Point3f(0, 0, 0);

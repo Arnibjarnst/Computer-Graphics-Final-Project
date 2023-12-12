@@ -59,7 +59,7 @@ public:
         const Point2f &samplePosition,
         const Point2f &apertureSample) const = 0;
 
-    virtual Color3f sampleRayDifferential(Ray3f& ray,
+    virtual Color3f sampleRayDifferential(Ray3fd& ray,
         const Point2f& samplePosition,
         const Point2f& apertureSample) const = 0;
 

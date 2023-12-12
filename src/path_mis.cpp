@@ -21,17 +21,17 @@ public:
      * \return
      *    A (usually) unbiased estimate of the radiance in this direction
      */
-    virtual Color3f Li(const Scene* scene, Sampler* sampler, const Ray3f& ray) const override {
+    virtual Color3f Li(const Scene* scene, Sampler* sampler, const Ray3f& ray0) const override {
 
         Color3f L = 0.0f;
         Color3f t = 1.0f;
-        Ray3f recursive_ray(ray);
+        Ray3f ray(ray0);
         Intersection its;
         float bsdfPdf = -1.0; // this means that we have discrete sampling (so infinty)
-        while (scene->rayIntersect(recursive_ray, its)) {
+        while (scene->rayIntersect(ray, its)) {
             // light emitted from intersection point
             if (its.mesh->isEmitter()) {
-                EmitterQueryRecord emitterEval(recursive_ray.o, its.p, its.shFrame.n);
+                EmitterQueryRecord emitterEval(ray.o, its.p, its.shFrame.n);
                 const Emitter* emitter = its.mesh->getEmitter();
                 if (bsdfPdf < 0) L += t * emitter->eval(emitterEval); // discrete sampling so wMat == 1
                 else {
@@ -45,7 +45,7 @@ public:
             t /= successProbability;
 
             const BSDF* bsdf = its.mesh->getBSDF();
-            const Vector3f wi = its.shFrame.toLocal(-recursive_ray.d);
+            const Vector3f wi = its.shFrame.toLocal(-ray.d);
             BSDFQueryRecord bsdfQuery = BSDFQueryRecord(wi);
             bsdfQuery.uv = its.uv;
             bsdfQuery.p = its.p;
@@ -81,7 +81,23 @@ public:
                 bsdfPdf = -1.0f; // infinity
             }
 
-            recursive_ray = Ray3f(its.p, its.shFrame.toWorld(bsdfQuery.wo));
+            bool isDifferential = ray.isDifferential;
+            ray = Ray3f(its.p, its.shFrame.toWorld(bsdfQuery.wo));
+            if (isDifferential) {
+                ray.ox = ray.o + its.dpdx;
+                ray.oy = ray.o + its.dpdy;
+                //Normal3f dndx = isect.shading.dndu * isect.dudx +
+                //    isect.shading.dndv * isect.dvdx;
+                //Normal3f dndy = isect.shading.dndu * isect.dudy +
+                //    isect.shading.dndv * isect.dvdy;
+                //Vector3f dwodx = -ray.rxDirection - wo, dwody = -ray.ryDirection - wo;
+                //Float dDNdx = Dot(dwodx, ns) + Dot(wo, dndx);
+                //Float dDNdy = Dot(dwody, ns) + Dot(wo, dndy);
+                //rd.rxDirection = wi - dwodx +
+                //    2.f * Vector3f(Dot(wo, ns) * dndx + dDNdx * ns);
+                //rd.ryDirection = wi - dwody +
+                //    2.f * Vector3f(Dot(wo, ns) * dndy + dDNdy * ns);
+            }
 
             t *= bsdfValue;
         }

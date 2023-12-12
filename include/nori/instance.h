@@ -11,11 +11,21 @@ class Instance : public Shape {
 public:
     Instance(const PropertyList &propList);
 
-    void linkSubScene(SubScene *subscene);
+    void linkSubScene(SubScene* subscene) {
+        std::cout << tfm::format("Linked subscene %d (m_subscene = %d)", subscene->getID(), m_subscene) << endl;
+        if (m_subscene)
+            throw NoriException("There can only be one subscene per instance!");
+        m_subscene = subscene;
+
+        m_bsdf = const_cast<BSDF*>(subscene->getMesh()->getBSDF());
+        m_emitter = subscene->getMesh()->isEmitter() ? const_cast<Emitter*> (subscene->getMesh()->getEmitter()) : nullptr;
+    }
 
     bool linked() {return m_subscene;}
 
-    int Instance::getSubsceneId();
+    int getSubsceneId() {
+        return m_subsceneID;
+    }
 
     Point3f toWorld(const Point3f point) const {
         return m_ToWorld * point;
