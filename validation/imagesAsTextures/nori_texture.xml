@@ -43,15 +43,15 @@
 	</mesh>
 
 	<mesh type="obj">
-		<string name="filename" value="stone.obj"/>
+		<string name="filename" value="../meshes/stone.obj"/>
 
 		<transform name="toWorld">
 			<scale value="0.02,0.02,0.02"/>
 			<translate value="0, 0, -0.5"/>
 		</transform>
 		<bsdf type="diffuse">
-			<texture type="image_texture" name="albedo">
-				<string name="filename" value="texture.jpg"/>
+			<texture type="image_texture_simple" name="albedo">
+				<string name="filename" value="../meshes/texture.jpg"/>
 			</texture>
 		</bsdf>
 	</mesh>

@@ -102,6 +102,44 @@ template <typename _PointType, typename _VectorType> struct TRay {
     }
 };
 
+struct Ray3fdiff : TRay<Point3f, Vector3f> {
+
+};
+
+template <typename _PointType, typename _VectorType>
+struct TRayDifferential : TRay<_PointType, _VectorType> {
+
+    /// Construct a new ray
+    TRayDifferential() : mint(Epsilon),
+        maxt(std::numeric_limits<Scalar>::infinity()), medium(nullptr) { }
+
+    /// Construct a new ray
+    TRayDifferential(const PointType& o, const VectorType& d) : o(o), d(d),
+        mint(Epsilon), maxt(std::numeric_limits<Scalar>::infinity()), medium(nullptr) {
+        update();
+    }
+
+    /// Construct a new ray
+    TRayDifferential(const PointType& o, const VectorType& d,
+        Scalar mint, Scalar maxt) : o(o), d(d), mint(mint), maxt(maxt), medium(nullptr) {
+        update();
+    }
+
+    /// Copy constructor
+    TRayDifferential(const TRay& ray)
+        : o(ray.o), d(ray.d), dRcp(ray.dRcp),
+        mint(ray.mint), maxt(ray.maxt), medium(ray.medium) { }
+
+    /// Copy a ray, but change the covered segment of the copy
+    TRayDifferential(const TRay& ray, Scalar mint, Scalar maxt)
+        : o(ray.o), d(ray.d), dRcp(ray.dRcp), mint(mint), maxt(maxt), medium(ray.medium) { }
+
+    PointType ox;
+    PointType oy;
+    VectorType dx;
+    VectorType dy;
+};
+
 NORI_NAMESPACE_END
 
 #endif /* __NORI_RAY_H */

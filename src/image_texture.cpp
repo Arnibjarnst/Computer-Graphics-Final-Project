@@ -88,6 +88,7 @@ private:
                 mod(int(uv.x() * m_width), m_width),
                 mod(int(uv.y() * m_height), m_height)
             );
+        return Point2i(0, 0);
     }
 protected:
     Point2f m_delta;
@@ -104,19 +105,11 @@ struct ResampleWeight {
     float weight[4];
 };
 
-
 class UVArray {
 public:
     UVArray(int uRes, int vRes, const Color3f* buf = nullptr) : uRes(uRes), vRes(vRes) {
         buffer = new Color3f[uRes * vRes];
         if (buf) for (int i = 0; i < uRes * vRes; i++) buffer[i] = buf[i];
-        //if (buf) {
-        //    for (int i = 0; i < uRes; i++) {
-        //        for (int j = 0; j < vRes; j++) {
-        //            (*this)(i, j) = buf[j * uRes + i];
-        //        }
-        //    }
-        //}
     }
 
     int uSize() const {
@@ -214,13 +207,7 @@ public:
             std::max(std::abs(duvdy.x()), std::abs(duvdy.y()))
         );
 
-        std::cout << "pyramid size " << pyramid.size() << " " << pyramid.max_size() << '\n';
-
-        return 0.0f;
-
         float level = pyramid.size() - 1 + log2(std::max(w, float(1e-8)));
-
-        std::cout << "pyramid size " << pyramid.size() << '\n';
 
         if (level < 0)
             return triangle(0, uv);
@@ -313,7 +300,7 @@ public:
             }
         }
 
-        mipmap = &MipMap(m_map, Point2i(m_width, m_height), WrapMethod::Clamp);
+        mipmap = new MipMap(m_map, Point2i(m_width, m_height), WrapMethod::Clamp);
 
         m_delta = props.getPoint2("delta", Point2f(0));
         m_scale = props.getVector2("scale", Vector2f(1));
@@ -333,7 +320,7 @@ public:
     }
 
     virtual Color3f eval(const Point2f& uv) override {
-        return mipmap->Lookup(uv, 1, 1);
+        return mipmap->Lookup(uv, 0.0001, 0.0001);
     }
 private:
     Point2i uvmap(const Point2f& uv) const {
