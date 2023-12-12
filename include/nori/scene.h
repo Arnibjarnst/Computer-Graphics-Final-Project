@@ -21,6 +21,7 @@
 
 #include <nori/bvh.h>
 #include <nori/emitter.h>
+#include <nori/subscene.h>
 
 NORI_NAMESPACE_BEGIN
 
@@ -151,6 +152,7 @@ public:
     virtual EClassType getClassType() const override { return EScene; }
 private:
     std::vector<Shape *> m_shapes;
+    std::vector<SubScene *> m_subscenes;
     Integrator *m_integrator = nullptr;
     Sampler *m_sampler = nullptr;
     Camera *m_camera = nullptr;

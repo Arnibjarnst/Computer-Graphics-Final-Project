@@ -161,6 +161,40 @@ As we can see using MIS for the free path sampling significantly reduces noise w
 
 ### Intel's Open Image Denoise
 ### Object instancing
+The objective of this feature was to allow the existence of multiple instances of the same object without having to each time reload the mesh. To implement this feature, I relied on the structure suggested in an answer to an issue that was given on GitLab page of the project.
+
+To achieve this goal, I created two new classes: `SubScene` and `Instance`. In `Subscene`, a shape and BVH, together with a unique identifier can be stored. On the other hand, `Instance` is a subclass of `Shape` and can, referring to that identifier, physically insert the mesh into the scene. `Instance` also contains a transform describing how the coordinates should be translated from local object coordinates to world coordinates. Since more than one instance can be associated to a subscene, this effectively allows us to create multiple instances of the same object in the scene.
+
+Most functions of `Instance` are inherited or concretized from `Shape`, but some deserve some more explanation. In the first place, the `getPrimitiveCount` function always returns 1. This means that, to the rest of the scene, the instance is a primitive shape, that deals with its BVH internally. Secondly, the `linkSubScene(SubScene *subscene)` is added. In this function, I set the attributes inherited from `Shape`, `m_emitter` and `m_bsdf`. `m_bbox` cannot be set in this way, as the bounding box of the shape stored in subscene is different from the one of the instance. To get from one to the other, the `Instance::getBoundingBox()` function takes the corners of the original bounding box, and creates its own to contain the corresponding points once the `toWorld` transform has been applied.
+
+Some other nori files had to be updated: support for the `Instance` and `Subscene` objects had to be added to `scene.cpp`, `parser.cpp` and `object.h`.
+
+To validate this approach, I rendered multiple scenes. In the first place, I rendered two spheres from the scene from pa1. This was a simple scene, useful for debugging my code, and testing translation and scaling. 
+<div class="twentytwenty-container">
+    <img src="../../validation/instancing/sphere-normal/two_sphere.png" alt="With Instancing" class="img-responsive">
+</div>
+I also want to check whether the functions for sampling a surface still worked. To this end, I rendered the `sphere2_ems` scene from pa3, with reduced radiance.
+<div class="twentytwenty-container">
+    <img src="../../validation/instancing/sphere-emitter/sphere2_ems.png" alt="With Instancing" class="img-responsive">
+</div>
+Finally, to check whether this feature comes with any benefits in terms of memory and runtime, I wanted to render a more complex scene, so I created a new scene based on the `ajax_av` scene from pa1, both using instancing and simply spawning two meshes.
+<div class="twentytwenty-container">
+    <img src="../../validation/instancing/ajax/ajax-av-instancing.png" alt="With Instancing" class="img-responsive">
+    <img src="../../validation/instancing/ajax/ajax-av-two-meshes.png" alt="Without instancing" class="img-responsive">
+</div>
+With Instancing        | Primitive count | Memory use | Building time 
+----------------|-----------------|------------|--------------
+BVH Scene       | 4               | 272 B      | 0.0 ms
+BVH SubScene    | 544566          | 35.3 MB    | 1.2 s
+Total runtime   | -               | 99.3 MB   | 2.3 min
+
+Without Instancing        | Primitive count | Memory use | Building time 
+----------------|-----------------|------------|--------------
+BVH Scene       | 1089134         | 70.6 MB    | 2.8 s
+Total runtime   | -               | 176.2 MB  | 1.7 m
+
+Total memory consumption was monitored with Task Manager
+
 ### Rendering on the cluster
 ### Modeling Meshes
 ### Resampled Importance Sampling (RIS)

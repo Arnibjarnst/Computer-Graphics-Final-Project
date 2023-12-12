@@ -22,6 +22,8 @@
 #include <nori/sampler.h>
 #include <nori/camera.h>
 #include <nori/emitter.h>
+#include <nori/subscene.h>
+#include <nori/instance.h>
 
 NORI_NAMESPACE_BEGIN
 
@@ -61,6 +63,28 @@ void Scene::activate() {
 
 void Scene::addChild(NoriObject *obj) {
     switch (obj->getClassType()) {
+        case ESubScene: {
+                SubScene *subscene = static_cast<SubScene *>(obj);   
+                m_subscenes.push_back(subscene); 
+            }
+            break;
+        case EInstance: {
+                Instance *instance = static_cast<Instance *>(obj);
+                for (int i = 0; i < m_subscenes.size(); i++) {
+                    if (instance->getSubsceneId() == m_subscenes[i]->getID()) {
+                        instance->linkSubScene(m_subscenes[i]);
+                        break;
+                    }
+                }
+                if (!instance->linked()) {
+                    throw NoriException("Subscene not found!");
+                }
+                m_bvh->addShape(instance);
+                m_shapes.push_back(instance);
+                if (instance->isEmitter())
+                    m_emitters.push_back(instance->getEmitter());
+            }
+            break;
         case EMesh: {
                 Shape *mesh = static_cast<Shape *>(obj);
                 m_bvh->addShape(mesh);
