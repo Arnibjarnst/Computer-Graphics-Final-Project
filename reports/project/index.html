@@ -11,7 +11,60 @@ Student Names: Árni Bjarnsteinsson and Gianluca Figini
 ## Árni Bjarnsteinsson
 
 ### Images as Textures
+
+**Relevant files:**
+<ul>
+    <li> <code>image_texture.cpp</code></li>
+</ul>
+
+<div class="twentytwenty-container">
+    <img src="../../validation/imagesAsTextures/mitsuba_texture.png" alt="Mitsuba" class="img-responsive">
+    <img src="../../validation/imagesAsTextures/nori_texture.png" alt="Nori" class="img-responsive">
+</div>
+
 ### Simple Emitters (Spotlight)
+
+**Relevant files:**
+<ul>
+    <li> <code>spotlight.cpp</code></li>
+    <li> <code>spotlight_area.cpp</code></li>
+</ul>
+
+**Implementation:**
+
+The implementation is very straight forward and is based on the pointlight, except now we also specify a maximum angle of illumnation and another (smaller) angle,
+called the falloff angle. The light contribution is exactly like the pointlight if we are within the falloff angle else it is linearly interpolated from 1 to 0
+till we reach the maximum angle.
+
+
+**Validation:**
+
+To validate our spotlight I created a scene in mitsuba and nori (note that the light intensity is slightly different but that is simply implementation detail in each renderer),
+I also compared scenes where I add an arealight to the scene.
+
+<div class="twentytwenty-container">
+    <img src="../../validation/spotlight/mitsuba_spotlight.png" alt="Mitsuba spotlight" class="img-responsive">
+    <img src="../../validation/spotlight/nori_spotlight.png" alt="Nori spotlight" class="img-responsive">
+    <img src="../../validation/spotlight/mitsuba_spotlight+arealight.png" alt="Mitsuba spotlight + arealight" class="img-responsive">
+    <img src="../../validation/spotlight/nori_spotlight+arealight.png" alt="Nori spotlight + arealight" class="img-responsive">
+</div>
+
+**Area spotlight**
+
+Then I also had the idea of combining these two types into one emitter which works as an arealight except we give the emitter
+an inside and outside radiance values as well as maximum and falloff angles (outer and inner). Then the light contribution from a point is the inside radiance
+when the angle is less than the falloff then linearly goes to the outside radiance.
+
+**Comparison:**
+
+<div class="twentytwenty-container">
+    <img src="../../validation/spotlight/nori_spotlight_area.png" alt="Nori area spotlight" class="img-responsive">
+    <img src="../../validation/spotlight/nori_spotlight+arealight.png" alt="Nori spotlight + arealight" class="img-responsive">
+    <img src="../../validation/spotlight/nori_arealight.png" alt="Nori arealight" class="img-responsive">
+</div>
+
+As we can see this gives smoother shadows.
+
 ### Low Discrepancy Sampling
 ### Mip-Mapping for texture
 ### Disney BSDF

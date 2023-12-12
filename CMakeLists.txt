@@ -112,6 +112,9 @@ set(NORI_SOURCE_FILES
   src/homogeneous.cpp
   src/henyey_greenstein.cpp
   src/isotropic.cpp
+  src/spotlight.cpp
+  src/spotlight_area.cpp
+  src/image_texture.cpp
 )
 
 add_executable(nori ${NORI_SOURCE_FILES})
