@@ -45,31 +45,32 @@ template <typename _PointType, typename _VectorType> struct TRay {
     VectorType dRcp; ///< Componentwise reciprocals of the ray direction
     Scalar mint;     ///< Minimum position on the ray segment
     Scalar maxt;     ///< Maximum position on the ray segment
+    const Medium* medium;
 
     /// Construct a new ray
     TRay() : mint(Epsilon), 
-        maxt(std::numeric_limits<Scalar>::infinity()) { }
+        maxt(std::numeric_limits<Scalar>::infinity()), medium(nullptr) { }
     
     /// Construct a new ray
     TRay(const PointType &o, const VectorType &d) : o(o), d(d), 
-            mint(Epsilon), maxt(std::numeric_limits<Scalar>::infinity()) {
+            mint(Epsilon), maxt(std::numeric_limits<Scalar>::infinity()), medium(nullptr) {
         update();
     }
 
     /// Construct a new ray
     TRay(const PointType &o, const VectorType &d, 
-        Scalar mint, Scalar maxt) : o(o), d(d), mint(mint), maxt(maxt) {
+        Scalar mint, Scalar maxt) : o(o), d(d), mint(mint), maxt(maxt), medium(nullptr) {
         update();
     }
 
     /// Copy constructor
     TRay(const TRay &ray) 
      : o(ray.o), d(ray.d), dRcp(ray.dRcp),
-       mint(ray.mint), maxt(ray.maxt) { }
+       mint(ray.mint), maxt(ray.maxt), medium(ray.medium) { }
 
     /// Copy a ray, but change the covered segment of the copy
     TRay(const TRay &ray, Scalar mint, Scalar maxt) 
-     : o(ray.o), d(ray.d), dRcp(ray.dRcp), mint(mint), maxt(maxt) { }
+     : o(ray.o), d(ray.d), dRcp(ray.dRcp), mint(mint), maxt(maxt), medium(ray.medium) { }
 
     /// Update the reciprocal ray directions after changing 'd'
     void update() {
@@ -84,6 +85,7 @@ template <typename _PointType, typename _VectorType> struct TRay {
         TRay result;
         result.o = o; result.d = -d; result.dRcp = -dRcp;
         result.mint = mint; result.maxt = maxt;
+        result.medium = medium; // unsure if this works
         return result;
     }
 
@@ -94,8 +96,9 @@ template <typename _PointType, typename _VectorType> struct TRay {
                 "  o = %s,\n"
                 "  d = %s,\n"
                 "  mint = %f,\n"
-                "  maxt = %f\n"
-                "]", o.toString(), d.toString(), mint, maxt);
+                "  maxt = %f\n",
+                "  medium = %s",
+                "]", o.toString(), d.toString(), mint, maxt, medium->toString());
     }
 };
 

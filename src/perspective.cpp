@@ -105,6 +105,7 @@ public:
         ray.d = m_cameraToWorld * d;
         ray.mint = m_nearClip * invZ;
         ray.maxt = m_farClip * invZ;
+        ray.medium = m_medium;
         ray.update();
 
         return Color3f(1.0f);
@@ -116,6 +117,12 @@ public:
                 if (m_rfilter)
                     throw NoriException("Camera: tried to register multiple reconstruction filters!");
                 m_rfilter = static_cast<ReconstructionFilter *>(obj);
+                break;
+            case EMedium:
+                if (m_medium)
+                    throw NoriException("Camera: tried to register multiple mediums!");
+
+                m_medium = static_cast<Medium*>(obj);
                 break;
 
             default:

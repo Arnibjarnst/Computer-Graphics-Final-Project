@@ -22,6 +22,8 @@
 #include <nori/object.h>
 #include <nori/frame.h>
 #include <nori/bbox.h>
+#include <nori/medium.h>
+#include <nori/bsdf.h>
 
 NORI_NAMESPACE_BEGIN
 
@@ -119,6 +121,11 @@ public:
     /// Return a pointer to the BSDF associated with this mesh
     const BSDF *getBSDF() const { return m_bsdf; }
 
+    /// Return a pointer to the interior Medium associated with this mesh
+    const Medium *getInterior() const { return m_interior; }
+
+    /// Return a pointer to the exterior Medium associated with this mesh
+    const Medium* getExterior() const { return m_exterior; }
 
     /// Return the total number of primitives in this shape
     virtual uint32_t getPrimitiveCount() const { return 1; }
@@ -157,7 +164,8 @@ protected:
     BSDF *m_bsdf = nullptr;      ///< BSDF of the surface
     Emitter *m_emitter = nullptr;     ///< Associated emitter, if any
     BoundingBox3f m_bbox;                ///< Bounding box of the mesh
-
+    Medium *m_interior = nullptr; ///< interior medium of the mesh
+    Medium *m_exterior = nullptr; ///< exterior medium of the mesh
 };
 
 NORI_NAMESPACE_END

@@ -79,16 +79,21 @@ public:
 
     virtual std::string toString() const override {
         return tfm::format(
-                "Sphere[\n"
-                "  center = %s,\n"
-                "  radius = %f,\n"
-                "  bsdf = %s,\n"
-                "  emitter = %s\n"
-                "]",
-                m_position.toString(),
-                m_radius,
-                m_bsdf ? indent(m_bsdf->toString()) : std::string("null"),
-                m_emitter ? indent(m_emitter->toString()) : std::string("null"));
+            "Sphere[\n"
+            "  center = %s,\n"
+            "  radius = %f,\n"
+            "  bsdf = %s,\n"
+            "  emitter = %s\n"
+            "  interior_medium = %s,\n"
+            "  exterior_medium = %s,\n"
+            "]",
+            m_position.toString(),
+            m_radius,
+            m_bsdf ? indent(m_bsdf->toString()) : std::string("null"),
+            m_emitter ? indent(m_emitter->toString()) : std::string("null"),
+            m_interior ? indent(m_interior->toString()) : std::string("null"),
+            m_exterior ? indent(m_exterior->toString()) : std::string("null")
+        );
     }
 
 protected:

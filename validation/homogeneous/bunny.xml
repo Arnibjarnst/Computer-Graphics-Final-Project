@@ -1,15 +1,15 @@
 <scene version="2.1.0">
-	<integrator type="volpathmis"/>
+	<integrator type="volpath"/>
 
 	<sensor type="perspective">
 		<float name="fov" value="27.7856"/>
 		<transform name="to_world">
-			<scale value="-1,1,1"/>
+			<scale value="1,1,1"/>
 			<lookat target="0, 0.893051, 4.41198" origin="0, 0.919769, 5.41159" up="0, 1, 0"/>
 		</transform>
 
 		<sampler type="independent">
-			<integer name="sample_count" value="128"/>
+			<integer name="sample_count" value="512"/>
 		</sampler>
 
 		<film type="hdrfilm" name="film">

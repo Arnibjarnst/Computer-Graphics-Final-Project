@@ -110,6 +110,23 @@ public:
         return m_bvh->rayIntersect(ray, its, true);
     }
 
+    bool rayIntersectTr(Ray3f& ray, Color3f &tr) const {
+        Intersection its;
+        tr = Color3f(1.0f);
+
+        while (m_bvh->rayIntersect(ray, its, false)) {
+            if (its.mesh->getBSDF()->isVisible()) return true;
+            if (ray.medium) tr *= ray.medium->tr(its.t);
+
+            ray.medium = its.shFrame.n.dot(ray.d) > 0 ? its.mesh->getExterior() : its.mesh->getInterior();
+            ray.o = its.p;
+            ray.maxt -= its.t;
+        }
+        if (ray.medium) tr *= ray.medium->tr(ray.maxt);
+
+        return false;
+    }
+
     /**
      * \brief Return an axis-aligned box that bounds the scene
      */
