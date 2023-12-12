@@ -27,7 +27,7 @@ To achieve this goal, I created two new classes: `SubScene` and `Instance`. In `
 
 Most functions of `Instance` are inherited or concretized from `Shape`, but some deserve some more explanation. In the first place, the `getPrimitiveCount` function always returns 1. This means that, to the rest of the scene, the instance is a primitive shape, that deals with its BVH internally. Secondly, the `linkSubScene(SubScene *subscene)` is added. In this function, I set the attributes inherited from `Shape`, `m_emitter` and `m_bsdf`. `m_bbox` cannot be set in this way, as the bounding box of the shape stored in subscene is different from the one of the instance. To get from one to the other, the `Instance::getBoundingBox()` function takes the corners of the original bounding box, and creates its own to contain the corresponding points once the `toWorld` transform has been applied.
 
-Some other nori files had to be updated: support for the `Instance` and `Subscene` objects had to be added to `scene.cpp`, `parser.cpp` and `object.h`.
+Some other nori files had to be updated: support for the `Instance` and `Subscene` objects had to be added to `scene.cpp`, `parser.cpp` and `object.h`. It must be mentioned that this implementation causes Nori to crash after finishing rendering any scene using instancing. If time allows, I will look into this in the future.
 
 To validate this approach, I rendered multiple scenes. In the first place, I rendered two spheres from the scene from pa1. This was a simple scene, useful for debugging my code, and testing translation and scaling. 
 <div class="twentytwenty-container">
@@ -57,6 +57,9 @@ Total memory consumption was monitored with Task Manager
 
 ### Rendering on the cluster
 ### Modeling Meshes
+I initially had some troubles using the add-on for Blender to export objects to Nori, but with some modifications I got it working. I used Blender 2.90, as Blender 4.0.0 was reported to be too recent for the add-on, and the 2.90 version was mentioned in the GitHub page of the add-on itself. Furthermore, the `Support` argument of the `bl_info` variable had to be changed from `TESTING` to `COMMUNITY`.
+**TODO**: Insert description/source of meshes created/used.
+
 ### Resampled Importance Sampling (RIS)
 In importance sampling, samples are drawn from a probability density function $g$ with values proportional to the function being integrated. However, drawing samples from $g$ requires its integration. RIS provides an alternative approach: it involves obtaining multiple samples $x_i$ from a base distribution $p$, easier to integrate, and selecting one of these with a probability proportional to $g(x_i)/p(x_i)$. To implemet this feature, I've created some new integrators, both for direct illumiation and path tracing. 
 
