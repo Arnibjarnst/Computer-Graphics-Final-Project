@@ -93,6 +93,10 @@ public:
         return BoundingBox3f(m_position);
     }
 
+    float getPower() const override {
+        return m_power.maxCoeff();
+    }
+
     std::string toString() const {
         return tfm::format(
             "Spotlight[\n"

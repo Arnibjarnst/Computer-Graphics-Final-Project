@@ -40,6 +40,8 @@ struct Bins {
     Bins() { memset(counts, 0, sizeof(uint32_t) * BIN_COUNT); }
     uint32_t counts[BIN_COUNT];
     BoundingBox3f bbox[BIN_COUNT];
+    LightCone cone[BIN_COUNT];
+    float power[BIN_COUNT];
 };
 
 /**
@@ -129,6 +131,8 @@ public:
 
                     result.counts[index]++;
                     result.bbox[index].expandBy(bvh.getBoundingBox(f));
+                    result.cone[index].expandBy(bvh.getLightCone(f));
+                    result.power[index] += bvh.getPower(f);
                 }
                 return result;
             },
@@ -138,6 +142,8 @@ public:
                 for (int i=0; i < Bins::BIN_COUNT; ++i) {
                     result.counts[i] = b1.counts[i] + b2.counts[i];
                     result.bbox[i] = BoundingBox3f::merge(b1.bbox[i], b2.bbox[i]);
+                    result.cone[i] = (b1.cone[i]).merge(b2.cone[i]);
+                    result.power[i] = b1.power[i] + b2.power[i];
                 }
                 return result;
             }
@@ -145,19 +151,29 @@ public:
 
         /* Choose the best split plane based on the binned data */
         BoundingBox3f bbox_left[Bins::BIN_COUNT];
+        LightCone cone_left[Bins::BIN_COUNT];
+        float power_left [Bins::BIN_COUNT];
         bbox_left[0] = bins.bbox[0];
+        cone_left[0] = bins.cone[0];
+        power_left[0] = bins.power[0];
         for (int i=1; i<Bins::BIN_COUNT; ++i) {
             bins.counts[i] += bins.counts[i-1];
             bbox_left[i] = BoundingBox3f::merge(bbox_left[i-1], bins.bbox[i]);
+            cone_left[i] = cone_left[i-1].merge(bins.cone[i]);
+            power_left[i] = power_left[i-1] + bins.power[i];
         }
 
         BoundingBox3f bbox_right = bins.bbox[Bins::BIN_COUNT-1], best_bbox_right;
+        struct LightCone cone_right = bins.cone[Bins::BIN_COUNT-1], best_cone_right;
+        float power_right = bins.power[Bins::BIN_COUNT-1], best_power_right;
         int64_t best_index = -1;
+        // TODO Modify?
         float best_cost = (float) INTERSECTION_COST * size;
         float tri_factor = (float) INTERSECTION_COST / node.bbox.getSurfaceArea();
 
         for (int i=Bins::BIN_COUNT - 2; i >= 0; --i) {
             uint32_t prims_left = bins.counts[i], prims_right = (uint32_t) (end - start) - bins.counts[i];
+            // TODO Implement SAOH
             float sah_cost = 2.0f * TRAVERSAL_COST +
                 tri_factor * (prims_left * bbox_left[i].getSurfaceArea() +
                               prims_right * bbox_right.getSurfaceArea());
@@ -165,8 +181,12 @@ public:
                 best_cost = sah_cost;
                 best_index = i;
                 best_bbox_right = bbox_right;
+                best_cone_right = cone_right;
+                best_power_right = power_right;
             }
             bbox_right = BoundingBox3f::merge(bbox_right, bins.bbox[i]);
+            cone_right = cone_right.merge(bins.cone[i]);
+            power_right = power_right + bins.power[i];
         }
 
         if (best_index == -1) {
@@ -181,7 +201,12 @@ public:
         int node_idx_right = node_idx+2*left_count;
 
         bvh.m_nodes[node_idx_left ].bbox = bbox_left[best_index];
+        bvh.m_nodes[node_idx_left ].cone = cone_left[best_index];
+        bvh.m_nodes[node_idx_left ].power = power_left[best_index];
         bvh.m_nodes[node_idx_right].bbox = best_bbox_right;
+        bvh.m_nodes[node_idx_right].cone = best_cone_right;
+        bvh.m_nodes[node_idx_right].power = best_power_right;
+        
         node.inner.rightChild = node_idx_right;
         node.inner.axis = axis;
         node.inner.flag = 0;
@@ -249,10 +274,15 @@ public:
             });
 
             BoundingBox3f bbox;
+            struct LightCone cone;
+            float power;
             for (uint32_t i = 0; i<size; ++i) {
                 uint32_t f = *(start + i);
                 bbox.expandBy(bvh.getBoundingBox(f));
-                left_areas[i] = (float) bbox.getSurfaceArea();
+                cone.expandBy(bvh.getLightCone(f));
+                power += bvh.getPower(f);
+
+                left_areas[i] = (float) bbox.getSurfaceArea(); //TODO *cone.getOrientationCost() * power
             }
             if (axis == 0)
                 node.bbox = bbox;
@@ -266,10 +296,11 @@ public:
                 bbox.expandBy(bvh.getBoundingBox(f));
 
                 float left_area = left_areas[i-1];
-                float right_area = bbox.getSurfaceArea();
+                float right_area = bbox.getSurfaceArea(); //TODO *cone.getOrientationCost() * power
                 uint32_t prims_left = i;
                 uint32_t prims_right = size-i;
 
+                //TODO
                 float sah_cost = 2.0f * TRAVERSAL_COST +
                     tri_factor * (prims_left * left_area +
                                   prims_right * right_area);

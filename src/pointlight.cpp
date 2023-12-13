@@ -82,6 +82,10 @@ public:
         return BoundingBox3f(position);
     }
 
+    float getPower() const override {
+        return power.maxCoeff();
+    }
+
     std::string toString() const {
         return "PointLight[]";
     }

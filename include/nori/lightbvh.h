@@ -133,6 +133,12 @@ protected:
         return m_emitters[shapeIdx]->getLightCone();
     }
 
+    ////Return the power of the given primitive
+    float getPower(uint32_t index) const {
+        uint32_t shapeIdx = findShape(index);
+        return m_emitters[shapeIdx]->getPower();
+    }
+
     /// Compute internal tree statistics
     std::pair<float, uint32_t> statistics(uint32_t index = 0) const;
 
