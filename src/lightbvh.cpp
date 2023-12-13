@@ -433,12 +433,12 @@ std::pair<float, uint32_t> LightBVH::statistics(uint32_t node_idx) const {
     }
 }
 
-float LightBVH::sample(LightBVHQueryRecord &lRec, Sampler *sampler) const {
+Emitter *LightBVH::sample(LightBVHQueryRecord &lRec, Sampler *sampler) const {
     uint32_t node_idx = 0;
     float pdf = 1.f;
-    lRec.e = nullptr;
+    lRec.pdf = 1.f;
 
-    if (m_nodes.empty()) return 0.f;
+    if (m_nodes.empty()) return nullptr;
 
     uint32_t f = 0;
 
@@ -452,7 +452,7 @@ float LightBVH::sample(LightBVHQueryRecord &lRec, Sampler *sampler) const {
 
             if (importanceL == 0.f && importanceR == 0.f) {
                 node_idx += 1;
-                pdf = 0.f;
+                lRec.pdf = 0.f;
                 continue;
             } 
 
@@ -474,8 +474,8 @@ float LightBVH::sample(LightBVHQueryRecord &lRec, Sampler *sampler) const {
             uint32_t random = (uint32_t) (size * sampler->next1D());
             uint32_t idx = m_indices[node.start() + random];
             const Emitter *emitter = getEmitter(idx);
-            lRec.e = const_cast<Emitter *> (emitter);
-            return pdf / size;
+            lRec.pdf /= size;
+            return const_cast<Emitter *> (emitter);
         }
     }
 }

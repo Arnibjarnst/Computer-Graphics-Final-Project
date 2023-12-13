@@ -87,6 +87,7 @@ public:
         res.axis = m_direction;
         res.theta_e = m_theta;
         res.theta_o = 0.f;
+        return res;
     }
 
     BoundingBox3f getBoundingBox() const override {
