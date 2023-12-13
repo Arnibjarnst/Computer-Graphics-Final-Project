@@ -24,6 +24,7 @@
 #include <nori/bbox.h>
 #include <nori/medium.h>
 #include <nori/bsdf.h>
+#include <nori/lightcone.h>
 
 NORI_NAMESPACE_BEGIN
 
@@ -108,6 +109,9 @@ public:
 
     //// Return an axis-aligned bounding box of the entire mesh
     const BoundingBox3f &getBoundingBox() const { return m_bbox; }
+    
+    //// Return a lightcone of the entire mesh
+    virtual struct LightCone getLightCone() const = 0;
 
     /// Is this mesh an area emitter?
     bool isEmitter() const { return m_emitter != nullptr; }
@@ -133,6 +137,9 @@ public:
     //// Return an axis-aligned bounding box containing the given triangle
     virtual BoundingBox3f getBoundingBox(uint32_t index) const = 0;
 
+    //// Return the lightCone of the given triangle
+    virtual LightCone getLightCone(uint32_t index) const = 0;
+    
     //// Return the centroid of the given triangle
     virtual Point3f getCentroid(uint32_t index) const = 0;
 

@@ -76,6 +76,18 @@ public:
         return std::pow(1.f/m_radius,2) * Warp::squareToUniformSpherePdf(Vector3f(0.0f,0.0f,1.0f));
     }
 
+    virtual LightCone getLightCone() const override {
+        LightCone res;
+        res.axis = Vector3f(0.f);
+        res.theta_e = M_PI / 2;
+        res.theta_o = M_PI;
+        return res;
+    }
+
+    virtual LightCone getLightCone(uint32_t index) const override {
+        return getLightCone();
+    }
+
 
     virtual std::string toString() const override {
         return tfm::format(

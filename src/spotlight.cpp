@@ -82,6 +82,17 @@ public:
         throw NoriException("Emitter::samplePhoton(): not implemented!");
     };
 
+    LightCone getLightCone() const override {
+        LightCone res;
+        res.axis = m_direction;
+        res.theta_e = m_theta;
+        res.theta_o = 0.f;
+    }
+
+    BoundingBox3f getBoundingBox() const override {
+        return BoundingBox3f(m_position);
+    }
+
     std::string toString() const {
         return tfm::format(
             "Spotlight[\n"

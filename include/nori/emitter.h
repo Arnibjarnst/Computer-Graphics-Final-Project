@@ -20,6 +20,8 @@
 #define __NORI_EMITTER_H
 
 #include <nori/object.h>
+#include <nori/lightcone.h>
+#include <nori/bbox.h>
 
 NORI_NAMESPACE_BEGIN
 
@@ -107,6 +109,13 @@ public:
         throw NoriException("Emitter::samplePhoton(): not implemented!");
     }
 
+    /// Returns the lightCone of the emitter
+    virtual LightCone getLightCone() const = 0;
+
+    /// Returns the bounding box of the emitter
+    virtual BoundingBox3f getBoundingBox() {
+        throw NoriException("Emitter::getBoundingBox(): not implemented!");
+    }
 
     /**
      * \brief Virtual destructor

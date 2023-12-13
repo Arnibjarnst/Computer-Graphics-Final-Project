@@ -71,6 +71,17 @@ public:
         throw NoriException("Emitter::samplePhoton(): not implemented!");
     };
 
+    LightCone getLightCone() const override {
+        LightCone res;
+        res.axis = Vector3f(0.f);
+        res.theta_e = M_PI_2;
+        res.theta_o = M_PI;
+    }
+
+    BoundingBox3f getBoundingBox() const override {
+        return BoundingBox3f(position);
+    }
+
     std::string toString() const {
         return "PointLight[]";
     }

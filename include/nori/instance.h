@@ -56,13 +56,15 @@ public:
      }
 
     virtual BoundingBox3f getBoundingBox(uint32_t index) const override{
-        BoundingBox3f og_bbox = m_subscene->getBoundingBox();
-        BoundingBox3f res;
-        for (int i = 0; i < 8; i++) {
-            res.expandBy(toWorld(og_bbox.getCorner(i)));
-        }
+        return getBoundingBox();
+    }
 
-        return res;
+    virtual LightCone getLightCone() const override{
+        return m_subscene->getLightCone();
+    }
+
+    virtual LightCone getLightCone(uint32_t index) const override {
+        return getLightCone();
     }
 
     bool isEmitter() const { return m_emitter != nullptr; }
