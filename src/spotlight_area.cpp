@@ -110,6 +110,12 @@ public:
         return m_shape->getBoundingBox();
     }
 
+    float getPower() const override {
+        float inner_solid_angle = 2 * M_PI * (1 - m_cosTheta);
+        float outer_solid_angle = 2 * M_PI * (1 - m_cosThetaFalloff) - inner_solid_angle;
+        return m_innerRadiance.maxCoeff() * inner_solid_angle + m_outerRadiance.maxCoeff() * outer_solid_angle;
+    }
+
 
 protected:
     Color3f m_innerRadiance;

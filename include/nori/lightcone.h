@@ -15,18 +15,18 @@ struct LightCone {
     struct LightCone () 
         : theta_e(-1.f), theta_o(-1.f) {}
 
-    bool isValid() {
+    bool isValid() const {
         return theta_o >= 0.f && theta_o <= M_PI && theta_e >= 0.f && theta_e <= M_PI_2;
     }
 
-    float getOrientationCost() {
+    float getOrientationCost() const {
         float theta_w = std::min(theta_e + theta_o, M_PI);
         float cos_o = std::cos(theta_o);
         float sin_o = std::cos(theta_o);
         return 2 * M_PI * (1 - cos_o) + M_PI_2 * (2 * theta_w * sin_o - std::cos(theta_o - 2 * theta_w) - 2 * theta_o * sin_o + cos_o);
     }
 
-    struct LightCone merge(LightCone other) {
+    struct LightCone merge(LightCone other) const {
         // Either of the operands is invalid
         if (!isValid()) {
             LightCone res;
@@ -66,6 +66,12 @@ struct LightCone {
         Eigen::Matrix3f rotation = Eigen::AngleAxis(theta_r, u).toRotationMatrix();
         res.axis = rotation * axis;
         return res;
+    }
+
+    void expandBy(LightCone other) {
+        axis = merge(other).axis;
+        theta_o = merge(other).theta_o;
+        theta_e = merge(other).theta_e;
     }
 };
 

@@ -87,10 +87,15 @@ public:
         res.axis = m_direction;
         res.theta_e = m_theta;
         res.theta_o = 0.f;
+        return res;
     }
 
     BoundingBox3f getBoundingBox() const override {
         return BoundingBox3f(m_position);
+    }
+
+    float getPower() const override {
+        return m_power.maxCoeff();
     }
 
     std::string toString() const {

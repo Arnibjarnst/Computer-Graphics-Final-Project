@@ -113,9 +113,11 @@ public:
     virtual LightCone getLightCone() const = 0;
 
     /// Returns the bounding box of the emitter
-    virtual BoundingBox3f getBoundingBox() {
+    virtual BoundingBox3f getBoundingBox() const {
         throw NoriException("Emitter::getBoundingBox(): not implemented!");
     }
+
+    virtual float getPower() const = 0;
 
     /**
      * \brief Virtual destructor

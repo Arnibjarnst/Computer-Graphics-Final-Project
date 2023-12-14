@@ -76,10 +76,15 @@ public:
         res.axis = Vector3f(0.f);
         res.theta_e = M_PI_2;
         res.theta_o = M_PI;
+        return res;
     }
 
     BoundingBox3f getBoundingBox() const override {
         return BoundingBox3f(position);
+    }
+
+    float getPower() const override {
+        return power.maxCoeff();
     }
 
     std::string toString() const {
