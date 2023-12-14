@@ -48,6 +48,7 @@ public:
             const Vector3f wi = its.shFrame.toLocal(-ray.d);
             BSDFQueryRecord bsdfQuery = BSDFQueryRecord(wi);
             bsdfQuery.uv = its.uv;
+            bsdfQuery.duvdxy = Vector4f(its.dudx, its.dvdx, its.dudy, its.dvdy);
             bsdfQuery.p = its.p;
 
             Color3f bsdfValue = bsdf->sample(bsdfQuery, sampler->next2D());
@@ -69,6 +70,7 @@ public:
                         wo,
                         ESolidAngle);
                     bsdfEvalQuery.uv = its.uv;
+                    bsdfEvalQuery.duvdxy = Vector4f(its.dudx, its.dvdx, its.dudy, its.dvdy);
                     bsdfEvalQuery.p = its.p;
                     Color3f bsdfValueToLight = bsdf->eval(bsdfEvalQuery);
 
@@ -81,23 +83,7 @@ public:
                 bsdfPdf = -1.0f; // infinity
             }
 
-            bool isDifferential = ray.isDifferential;
             ray = Ray3f(its.p, its.shFrame.toWorld(bsdfQuery.wo));
-            if (isDifferential) {
-                ray.ox = ray.o + its.dpdx;
-                ray.oy = ray.o + its.dpdy;
-                //Normal3f dndx = isect.shading.dndu * isect.dudx +
-                //    isect.shading.dndv * isect.dvdx;
-                //Normal3f dndy = isect.shading.dndu * isect.dudy +
-                //    isect.shading.dndv * isect.dvdy;
-                //Vector3f dwodx = -ray.rxDirection - wo, dwody = -ray.ryDirection - wo;
-                //Float dDNdx = Dot(dwodx, ns) + Dot(wo, dndx);
-                //Float dDNdy = Dot(dwody, ns) + Dot(wo, dndy);
-                //rd.rxDirection = wi - dwodx +
-                //    2.f * Vector3f(Dot(wo, ns) * dndx + dDNdx * ns);
-                //rd.ryDirection = wi - dwody +
-                //    2.f * Vector3f(Dot(wo, ns) * dndy + dDNdy * ns);
-            }
 
             t *= bsdfValue;
         }

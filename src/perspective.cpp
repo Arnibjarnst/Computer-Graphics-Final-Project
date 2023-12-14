@@ -96,9 +96,14 @@ public:
             samplePosition.x() * m_invOutputSize.x(),
             samplePosition.y() * m_invOutputSize.y(), 0.0f);
 
-        Point3f nearPx = nearP + (nearP.x() < m_outputSize.x() / 2 ? Point3f(1.0f, 0.0f, 0.0f) : Point3f(-1.0f, 0.0f, 0.0f));
-        // move sample one pixel in y direction (closer to center)
-        Point3f nearPy = nearP + (nearP.y() < m_outputSize.y() / 2 ? Point3f(0.0f, 1.0f, 0.0f) : Point3f(0.0f, -1.0f, 0.0f));
+        Point3f nearPx = m_sampleToCamera * Point3f(
+            (samplePosition.x() + 1) * m_invOutputSize.x(),
+            samplePosition.y() * m_invOutputSize.y(), 0.0f);
+
+        Point3f nearPy = m_sampleToCamera * Point3f(
+            samplePosition.x() * m_invOutputSize.x(),
+            (samplePosition.y() + 1) * m_invOutputSize.y(), 0.0f);
+
 
         /* Turn into a normalized ray direction, and
            adjust the ray interval accordingly */
@@ -109,6 +114,7 @@ public:
         ray.d = m_cameraToWorld * d;
         ray.dx = m_cameraToWorld * Vector3f(nearPx.normalized());
         ray.dy = m_cameraToWorld * Vector3f(nearPy.normalized());
+        ray.isDifferential = true;
         ray.mint = m_nearClip * invZ;
         ray.maxt = m_farClip * invZ;
         ray.medium = m_medium;

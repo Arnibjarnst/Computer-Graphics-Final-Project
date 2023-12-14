@@ -54,17 +54,17 @@ template <typename _PointType, typename _VectorType> struct TRay {
 
     /// Construct a new ray
     TRay() : mint(Epsilon), 
-        maxt(std::numeric_limits<Scalar>::infinity()), medium(nullptr) { }
+        maxt(std::numeric_limits<Scalar>::infinity()), medium(nullptr), isDifferential(false) { }
     
     /// Construct a new ray
     TRay(const PointType &o, const VectorType &d) : o(o), d(d), 
-            mint(Epsilon), maxt(std::numeric_limits<Scalar>::infinity()), medium(nullptr) {
+            mint(Epsilon), maxt(std::numeric_limits<Scalar>::infinity()), medium(nullptr), isDifferential(false) {
         update();
     }
 
     /// Construct a new ray
     TRay(const PointType &o, const VectorType &d, 
-        Scalar mint, Scalar maxt) : o(o), d(d), mint(mint), maxt(maxt), medium(nullptr) {
+        Scalar mint, Scalar maxt) : o(o), d(d), mint(mint), maxt(maxt), medium(nullptr), isDifferential(false) {
         update();
     }
 
@@ -72,13 +72,13 @@ template <typename _PointType, typename _VectorType> struct TRay {
     TRay(const TRay &ray) 
      : o(ray.o), d(ray.d), dRcp(ray.dRcp),
        mint(ray.mint), maxt(ray.maxt), medium(ray.medium),
-       ox(ray.ox), oy(ray.oy), dx(ray.dx), dy(ray.dy) { }
+       ox(ray.ox), oy(ray.oy), dx(ray.dx), dy(ray.dy), isDifferential(ray.isDifferential) { }
 
     /// Copy a ray, but change the covered segment of the copy
     TRay(const TRay &ray, Scalar mint, Scalar maxt) 
      : o(ray.o), d(ray.d), dRcp(ray.dRcp),
        mint(mint), maxt(maxt), medium(ray.medium),
-       ox(ray.ox), oy(ray.oy), dx(ray.dx), dy(ray.dy) { }
+       ox(ray.ox), oy(ray.oy), dx(ray.dx), dy(ray.dy), isDifferential(ray.isDifferential) { }
 
     /// Update the reciprocal ray directions after changing 'd'
     void update() {
@@ -96,6 +96,7 @@ template <typename _PointType, typename _VectorType> struct TRay {
         result.medium = medium; // unsure if this works
         result.ox = ox; result.oy = oy;
         result.dx = dx; result.dy = dy;
+        result.isDifferential = isDifferential;
         return result;
     }
 
@@ -107,8 +108,14 @@ template <typename _PointType, typename _VectorType> struct TRay {
                 "  d = %s,\n"
                 "  mint = %f,\n"
                 "  maxt = %f\n",
-                "  medium = %s",
-                "]", o.toString(), d.toString(), mint, maxt, medium->toString());
+                "  medium = %s\n",
+                "  isDifferential %b\n",
+                "  ox = %s\n",
+                "  oy = %s\n",
+                "  dx = %s\n",
+                "  dy = %s\n",
+                "]", o.toString(), d.toString(), mint, maxt, medium->toString(),
+                isDifferential, ox.toString(), oy.toString(), dx.toString(), dy.toString());
     }
 };
 

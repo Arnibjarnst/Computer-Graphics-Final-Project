@@ -55,6 +55,10 @@ public:
             }
         }
 
+        std::string wrap = props.getString("wrap", "repeat");
+        if (wrap == "repeat") m_wrap = WrapMethod::Repeat;
+        else if (wrap == "clamp") m_wrap = WrapMethod::Clamp;
+
         m_delta = props.getPoint2("delta", Point2f(0));
         m_scale = props.getVector2("scale", Vector2f(1));
     }
@@ -72,8 +76,9 @@ public:
         );
     }
 
-    virtual Color3f eval(const Point2f& uv) override {
-        Point2i ij = uvmap(uv);
+    virtual Color3f eval(const Point2f& uv, const Vector4f& duvdxy) override {
+        const Point2f uv_scaled = Point2f(uv.x() * m_scale.x() + m_delta.x(), uv.y() * m_scale.y() + m_delta.y());
+        Point2i ij = uvmap(uv_scaled);
         return m_map[ij.y() * m_width + ij.x()];
     }
 private:
@@ -85,8 +90,8 @@ private:
             );
         if (m_wrap == WrapMethod::Repeat)
             return Point2i(
-                mod(int(uv.x() * m_width), m_width),
-                mod(int(uv.y() * m_height), m_height)
+                mod(int(floor(uv.x() * m_width)), m_width),
+                mod(int(floor(uv.y() * m_height)), m_height)
             );
         return Point2i(0, 0);
     }
@@ -96,7 +101,7 @@ protected:
     Color3f* m_map;
     int m_width;
     int m_height;
-    const WrapMethod m_wrap = WrapMethod::Clamp;
+    WrapMethod m_wrap;
 };
 
 
@@ -132,6 +137,7 @@ private:
 
 class MipMap {
 public:
+    mutable std::vector<int> level_counter;
     MipMap(const Color3f *img, const Point2i &res, WrapMethod wrap) : res(res), wrap(wrap) {
         Point2i newRes((1 << int(ceil(log2(res.x())))), (1 << int(ceil(log2(res.y())))));
 
@@ -143,7 +149,6 @@ public:
             tbb::parallel_for(
                 tbb::blocked_range<uint32_t>(0u, res.y(), 16), // what is grain size
                 [&](const tbb::blocked_range<uint32_t>& range) {
-                    std::cout << range.begin() << '\n';
                     for (uint32_t t = range.begin(); t != range.end(); ++t) {
                         for (int s = 0; s < newRes.x(); ++s) {
                             resampledImage[t * newRes.x() + s] = 0.f;
@@ -171,6 +176,7 @@ public:
 
         int nLevels = 1 + log2(std::max(res.x(), res.y()));
         pyramid.resize(nLevels);
+        level_counter = std::vector<int>(nLevels, 0);
         
         pyramid[0].reset(
             new UVArray(res.x(), res.y(), resampledImage ? resampledImage.get() : img)
@@ -200,14 +206,15 @@ public:
             );
         }
     }
-
-    Color3f Lookup(Point2f uv, Vector2f duvdx, Vector2f duvdy) const {
+    Color3f Lookup(const Point2f &uv, const Vector4f &duvdxy) const {
         float w = std::max(
-            std::max(std::abs(duvdx.x()), std::abs(duvdx.y())),
-            std::max(std::abs(duvdy.x()), std::abs(duvdy.y()))
+            std::max(std::abs(duvdxy[0]), std::abs(duvdxy[1])),
+            std::max(std::abs(duvdxy[2]), std::abs(duvdxy[3]))
         );
 
         float level = pyramid.size() - 1 + log2(std::max(w, float(1e-8)));
+
+        level_counter[clamp(int(level), 0, level_counter.size()-1)]++;
 
         if (level < 0)
             return triangle(0, uv);
@@ -251,13 +258,16 @@ private:
     Color3f eval(int level, int i, int j) const {
         UVArray &l = *pyramid[level];
         if (wrap == WrapMethod::Clamp) {
-            i = clamp(i, 0, l.uSize());
-            j = clamp(j, 0, l.vSize());
+            i = clamp(i, 0, l.uSize()-1);
+            j = clamp(j, 0, l.vSize()-1);
         }
         else if (wrap == WrapMethod::Repeat) {
             i = mod(i, l.uSize());
             j = mod(j, l.vSize());
         }
+        else
+            throw NoriException("unknown wrap method");
+
         return l(i, j);
     }
 
@@ -300,10 +310,14 @@ public:
             }
         }
 
-        mipmap = new MipMap(m_map, Point2i(m_width, m_height), WrapMethod::Clamp);
+        std::string wrap = props.getString("wrap", "repeat");
+        if (wrap == "repeat") m_wrap = WrapMethod::Repeat;
+        else if (wrap == "clamp") m_wrap = WrapMethod::Clamp;
 
-        m_delta = props.getPoint2("delta", Point2f(0));
-        m_scale = props.getVector2("scale", Vector2f(1));
+        mipmap = new MipMap(m_map, Point2i(m_width, m_height), m_wrap);
+
+        m_delta = props.getPoint2("delta", Point2f(0.0f));
+        m_scale = props.getVector2("scale", Vector2f(1.0f));
     }
 
     virtual std::string toString() const {
@@ -319,8 +333,24 @@ public:
         );
     }
 
-    virtual Color3f eval(const Point2f& uv) override {
-        return mipmap->Lookup(uv, 0.0001, 0.0001);
+    virtual Color3f eval(const Point2f& uv, const Vector4f &duvdxy) override {
+        //int call_count = 0;
+        //for (int i = 0; i < mipmap->level_counter.size(); i++) call_count += mipmap->level_counter[i];
+        //if (call_count % 20000000 == 0) {
+        //    std::cout << mipmap->level_counter[0] << ' ' << mipmap->level_counter[1] << ' '
+        //        << mipmap->level_counter[2] << ' ' << mipmap->level_counter[3] << ' ' << mipmap->level_counter[4] << ' '
+        //        << mipmap->level_counter[5] << ' ' << mipmap->level_counter[6] << ' ' << mipmap->level_counter[7] << ' '
+        //        << mipmap->level_counter[8] << ' ' << mipmap->level_counter[9] << ' ' << mipmap->level_counter[10] << ' '
+        //        << mipmap->level_counter[11] << ' ' << mipmap->level_counter[12] << ' ' << mipmap->level_counter[13] << '\n';
+        //}
+        const Point2f uv_scaled = Point2f(uv.x() * m_scale.x(), uv.y() * m_scale.y()) + m_delta;
+        const Vector4f duvdxy_scaled = Vector4f(
+            duvdxy[0] * m_scale.x(),
+            duvdxy[1] * m_scale.x(),
+            duvdxy[2] * m_scale.y(),
+            duvdxy[3] * m_scale.y()
+        );
+        return mipmap->Lookup(uv_scaled, duvdxy_scaled);
     }
 private:
     Point2i uvmap(const Point2f& uv) const {
@@ -341,7 +371,7 @@ protected:
     const MipMap* mipmap;
     int m_width;
     int m_height;
-    const WrapMethod m_wrap = WrapMethod::Clamp;
+    WrapMethod m_wrap;
 };
 
 NORI_REGISTER_CLASS(ImageTextureSimple, "image_texture_simple")

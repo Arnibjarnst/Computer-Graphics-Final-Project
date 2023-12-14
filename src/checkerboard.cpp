@@ -28,7 +28,7 @@ public:
 
     virtual std::string toString() const override;
 
-    virtual T eval(const Point2f & uv) override {
+    virtual T eval(const Point2f& uv, const Vector4f& duvdxy) override {
         int i = static_cast<int>(std::floor(uv.x() / m_scale.x() - m_delta.x()));
         int j = static_cast<int>(std::floor(uv.y() / m_scale.y() - m_delta.y()));
         if ((i + j) % 2) return m_value2;

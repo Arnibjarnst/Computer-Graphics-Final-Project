@@ -53,6 +53,8 @@ struct BSDFQueryRecord {
     /// Additional information possibly needed by the BSDF
     /// UV associated with the point
     Point2f uv;
+    /// uv differentials used by mipmap
+    Vector4f duvdxy;
     /// Point associated with the point
     Point3f p;
 };

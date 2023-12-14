@@ -59,10 +59,6 @@ public:
         const Point2f &samplePosition,
         const Point2f &apertureSample) const = 0;
 
-    virtual Color3f sampleRayDifferential(Ray3fd& ray,
-        const Point2f& samplePosition,
-        const Point2f& apertureSample) const = 0;
-
     /// Return the size of the output image in pixels
     const Vector2i &getOutputSize() const { return m_outputSize; }
 
