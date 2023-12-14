@@ -29,7 +29,7 @@ struct LightBVHQueryRecord {
     //// Normal at shading point
     Normal3f n;
     //// Selected emitter
-    Emitter *e;
+    float pdf;
 
     LightBVHQueryRecord() {}
 
@@ -80,7 +80,7 @@ public:
     void build();
 
     /// Traverse the tree to pick an emitter, returns the corresponding pdf
-    float sample(LightBVHQueryRecord &lRec, Sampler *sampler) const;
+    const Emitter *sample(LightBVHQueryRecord &lRec, Sampler *sampler) const;
 
     /// Return the total number of shapes registered with the BVH
     uint32_t getEmitterCount() const { return (uint32_t) m_emitters.size(); }
