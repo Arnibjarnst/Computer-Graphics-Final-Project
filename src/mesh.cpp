@@ -138,19 +138,18 @@ void Mesh::setHitInformation(uint32_t index, const Ray3f &ray, Intersection & it
         Point2f uv0 = m_UV.col(idx0);
         Point2f uv1 = m_UV.col(idx1);
         Point2f uv2 = m_UV.col(idx2);
-        if (ray.isDifferential) {
-            Vector2f duv02 = uv0 - uv2, duv12 = uv1 - uv2;
-            Vector3f dp02 = p0 - p2, dp12 = p1 - p2;
-            float det = duv02[0] * duv12[1] - duv02[1] * duv12[0];
-            if (det == 0) {
-                // shoulde this be (p1-p0).cross(p2-p0) like geoFrame
-                coordinateSystem((p2 - p0).cross(p1 - p0).normalized(), its.dpdu, its.dpdv);
-            }
-            else {
-                float invDet = 1 / det;
-                its.dpdu = invDet * (duv12[1] * dp02 - duv02[1] * dp12);
-                its.dpdv = invDet * (-duv12[0] * dp02 + duv02[0] * dp12);
-            }
+        Vector2f duv02 = uv0 - uv2, duv12 = uv1 - uv2;
+        Vector3f dp02 = p0 - p2, dp12 = p1 - p2;
+        float det = duv02[0] * duv12[1] - duv02[1] * duv12[0];
+        if (det == 0) {
+            // should this be (p1-p0).cross(p2-p0) like geoFrame
+            // or be in the other direction
+            coordinateSystem((p2 - p0).cross(p1 - p0).normalized(), its.dpdu, its.dpdv);
+        }
+        else {
+            float invDet = 1 / det;
+            its.dpdu = invDet * (duv12[1] * dp02 - duv02[1] * dp12);
+            its.dpdv = invDet * (-duv12[0] * dp02 + duv02[0] * dp12);
         }
         its.uv = bary.x() * uv0 + bary.y() * uv1 + bary.z() * uv2;
     }
