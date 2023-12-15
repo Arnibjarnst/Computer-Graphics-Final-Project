@@ -7,41 +7,36 @@
     <float name="fov" value="27.7856"/>
     <transform name="toWorld">
       <scale value="-1,1,1"/>
-      <lookat target="0, 0, 100" origin="0, 6, 0" up="0, 1, 0"/>
+      <lookat target="0, 1, 1" origin="0, 1.05, -1" up="0, 1, 0"/>
     </transform>
 
     <integer name="height" value="600"/>
     <integer name="width" value="800"/>
-	<rfilter type="box"/>
   </camera>
 
   <sampler type="independent">
-    <integer name="sampleCount" value="1024"/>
+    <integer name="sampleCount" value="128"/>
   </sampler>
 
-	<mesh type="obj">
-		<string name="filename" value="./cube.obj"/>
-		<transform name="toWorld">
-			<scale value="100, 1, 200"/>
-		</transform>
+  <mesh type="obj">
+    <string name="filename" value="./cube.obj"/>
 
-		<bsdf type="diffuse">
-			<texture type="image_texture_simple" name="albedo">
-				<string name="filename" value="./checkerboard.jpg"/>
-				<vector name="scale" value="1, 1"/>
-			</texture>
-		</bsdf>
-	</mesh>
+    <bsdf type="diffuse">
+      <texture type="image_texture_simple" name="albedo">
+        <string name="filename" value="./checkerboard.jpg"/>
+        <vector name="scale" value="50, 50"/>
+      </texture>
+    </bsdf>
+  </mesh>
 
   <mesh type="obj">
     <string name="filename" value="../meshes/light.obj"/>
 
-	<transform name="toWorld">
-		<scale value="1000.0, 1000.0, 1000.0"/>
-		<translate value="0, 100, 0"/>
-	</transform>
+    <transform name="toWorld">
+      <translate value="0, 3, 0"/>
+    </transform>
     <emitter type="area">
-      <color name="radiance" value="300 300 300"/>
+      <color name="radiance" value="200 200 200"/>
     </emitter>
   </mesh>
 </scene>
