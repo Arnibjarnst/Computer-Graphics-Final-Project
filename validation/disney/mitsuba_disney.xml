@@ -1,0 +1,89 @@
+<scene version="2.1.0">
+
+	<integrator type="path"/>
+
+	<sensor type="perspective">
+		<float name="fov" value="27.7856"/>
+		<transform name="to_world">
+			<scale value="1,1,1"/>
+			<lookat target="0, 0.893051, 4.41198" origin="0, 0.919769, 5.41159" up="0, 1, 0"/>
+		</transform>
+
+		<sampler type="independent">
+			<integer name="sample_count" value="512"/>
+		</sampler>
+
+		<film type="hdrfilm" name="film">
+			<integer name="width" value="1800"/>
+			<integer name="height" value="600"/>
+			<rfilter type="gaussian" name="rfilter"/>
+			<string name="pixel_format" value="rgb"/>
+			<string name="component_format" value="float32"/>
+		</film>
+	</sensor>
+
+	<shape type="obj">
+		<string name="filename" value="../meshes/walls.obj"/>
+		<transform name="to_world">
+			<scale value="10,10,10"/>
+		</transform>
+
+		<bsdf type="diffuse">
+			<rgb value="0.725 0.71 0.68" name="reflectance"/>
+		</bsdf>
+	</shape>
+
+
+	<shape type="sphere">
+		<point name="center" value="0 0.5 0"/>
+		<float name="radius" value="0.25"/>
+
+		<bsdf type="principled" id="disney">
+			<rgb name="base_color" value="1.0,0.843,0.0"/>
+			<float name="metallic" value="0.5" />
+			<float name="specular" value="0.5" />
+			<float name="roughness" value="0.5" />
+			<float name="anisotropic" value="0.0" />
+			<float name="flatness" value="0.0" />
+		</bsdf>
+	</shape>
+
+	<shape type="sphere">
+		<point name="center" value="1 0.5 0"/>
+		<float name="radius" value="0.25"/>
+
+		<bsdf type="principled">
+			<rgb name="base_color" value="1.0,0.843,0.0"/>
+			<float name="metallic" value="1.0" />
+			<float name="specular" value="0.5" />
+			<float name="roughness" value="0.5" />
+			<float name="anisotropic" value="0.0" />
+			<float name="flatness" value="0.0" />
+		</bsdf>
+	</shape>
+
+	<shape type="sphere">
+		<point name="center" value="-1 0.5 0"/>
+		<float name="radius" value="0.25"/>
+
+		<bsdf type="principled">
+			<rgb name="base_color" value="1.0,0.843,0.0"/>
+			<float name="metallic" value="0.0" />
+			<float name="specular" value="0.5" />
+			<float name="roughness" value="0.5" />
+			<float name="anisotropic" value="0.0" />
+			<float name="flatness" value="0.0" />
+		</bsdf>
+	</shape>
+
+
+	<shape type="sphere">
+		<point name="center" value="0 100 100"/>
+		<float name="radius" value="20"/>
+
+		<emitter type="area">
+			<rgb name="radiance" value="30"/>
+		</emitter>
+	</shape>
+
+</scene>

@@ -141,6 +141,41 @@ float Warp::squareToBeckmannPdf(const Vector3f &m, float alpha) {
     return 0;
 }
 
+Vector3f Warp::squareToGTR2(const Point2f& sample, float alpha) {
+    float cos_theta_2 = (1 - sample.x()) / (1 + (alpha * alpha - 1) * sample.x());
+    float r = std::sqrt(1 - cos_theta_2);
+    float phi = 2 * M_PI * sample.y();
+    return Vector3f(
+        r * std::cos(phi),
+        r * std::sin(phi),
+        std::sqrt(cos_theta_2)
+    );
+}
+
+float Warp::squareToGTR2pdf(const Vector3f& v, float alpha) {
+    if (v.z() <= 0) return 0.0f;
+    float a2 = alpha * alpha;
+    float t = 1 + (a2 - 1) * v.z() * v.z();
+    return a2 / (M_PI * t * t) * v.z();
+}
+
+/// Warp a uniformly distributed square sample to a  Generalized-Trowbridge-Reitz distribution * cosine with eta=2 and the given 'alpha' parameter
+Vector3f Warp::squareToGTR2Aniso(const Point2f& sample, float ax, float ay) {
+    float r = sqrt(sample.x() / (1 - sample.x()));
+    float phi = 2 * M_PI * sample.y();
+    return Vector3f(
+        r * ax * std::cos(phi),
+        r * ay * std::sin(phi),
+        1
+    ).normalized();
+}
+
+/// Probability density of \ref squareToGTR2()
+float Warp::squareToGTR2Anisopdf(const Vector3f& v, float ax, float ay) {
+    if (v.z() <= 0) return 0.0f;
+    return 1 / (M_PI * ax * ay * pow(pow(v.x() / ax, 2) + pow(v.y() / ay, 2) + v.z() * v.z(), 2));
+}
+
 Vector3f Warp::squareToUniformTriangle(const Point2f &sample) {
     float su1 = sqrtf(sample.x());
     float u = 1.f - su1, v = sample.y() * su1;

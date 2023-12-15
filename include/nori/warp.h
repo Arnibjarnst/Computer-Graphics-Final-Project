@@ -78,6 +78,17 @@ public:
     /// Probability density of \ref squareToBeckmann()
     static float squareToBeckmannPdf(const Vector3f &m, float alpha);
 
+    /// Warp a uniformly distributed square sample to a  Generalized-Trowbridge-Reitz distribution * cosine with eta=2 and the given 'alpha' parameter
+    static Vector3f squareToGTR2(const Point2f& sample, float alpha);
+
+    /// Probability density of \ref squareToGTR2()
+    static float squareToGTR2pdf(const Vector3f& v, float alpha);
+
+    /// Warp a uniformly distributed square sample to a  Generalized-Trowbridge-Reitz distribution * cosine with eta=2 and the given 'alpha' parameter
+    static Vector3f squareToGTR2Aniso(const Point2f& sample, float ax, float ay);
+
+    /// Probability density of \ref squareToGTR2()
+    static float squareToGTR2Anisopdf(const Vector3f& v, float ax, float ay);
 
     static Vector3f squareToUniformTriangle(const Point2f &sample);
 

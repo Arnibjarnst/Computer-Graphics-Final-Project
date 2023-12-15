@@ -68,6 +68,12 @@ As we can see this gives smoother shadows.
 ### Low Discrepancy Sampling
 ### Mip-Mapping for texture
 ### Disney BSDF
+
+eval function: https://github.com/wdas/brdf/blob/main/src/brdfs/disney.brdf#L119
+
+sampling weights:
+https://schuttejoe.github.io/post/disneybsdf/
+
 ### Homogeneous Volumetric Participating Media
 
 **Relevant files:** // TODO: update files and description
@@ -169,7 +175,7 @@ Most functions of `Instance` are inherited or concretized from `Shape`, but some
 
 Some other nori files had to be updated: support for the `Instance` and `Subscene` objects had to be added to `scene.cpp`, `parser.cpp` and `object.h`. It must be mentioned that this implementation causes Nori to crash after finishing rendering any scene using instancing. If time allows, I will look into this in the future.
 
-To validate this approach, I rendered multiple scenes. In the first place, I rendered two spheres from the scene from pa1. This was a simple scene, useful for debugging my code, and testing translation and scaling. 
+To validate this approach, I rendered multiple scenes. In the first place, I rendered two spheres from the scene from pa1. This was a simple scene, useful for debugging my code, and testing translation and scaling.
 <div class="twentytwenty-container">
     <img src="../../validation/instancing/sphere-normal/two_sphere.png" alt="With Instancing" class="img-responsive">
 </div>
@@ -182,13 +188,13 @@ Finally, to check whether this feature comes with any benefits in terms of memor
     <img src="../../validation/instancing/ajax/ajax-av-instancing.png" alt="With Instancing" class="img-responsive">
     <img src="../../validation/instancing/ajax/ajax-av-two-meshes.png" alt="Without instancing" class="img-responsive">
 </div>
-With Instancing        | Primitive count | Memory use | Building time 
+With Instancing        | Primitive count | Memory use | Building time
 ----------------|-----------------|------------|--------------
 BVH Scene       | 4               | 272 B      | 0.0 ms
 BVH SubScene    | 544566          | 35.3 MB    | 1.2 s
 Total runtime   | -               | 99.3 MB   | 2.3 min
 
-Without Instancing        | Primitive count | Memory use | Building time 
+Without Instancing        | Primitive count | Memory use | Building time
 ----------------|-----------------|------------|--------------
 BVH Scene       | 1089134         | 70.6 MB    | 2.8 s
 Total runtime   | -               | 176.2 MB  | 1.7 m
