@@ -70,8 +70,7 @@ public:
                     Vector3f wo1 = Warp::squareToCosineHemisphere(sampler->next2D());
                     samples[j].wo = wo1;
                     BSDFQueryRecord bqr = BSDFQueryRecord(wi, wo1, ESolidAngle);
-                    bqr.p = its.p;
-                    bqr.uv = its.uv;
+                    bqr.its = &its;
                     samples[j].bsdf = b1->eval(bqr) * Frame::cosTheta(wo1);
                     samples[j].g = b1->pdf(bqr);
                     samples[j].weight = b1->pdf(bqr) / Warp::squareToCosineHemispherePdf(wo1);
@@ -91,8 +90,7 @@ public:
             } else {
                 // Importance sampling, if b is not diffuse or weight_sum was zero
                 BSDFQueryRecord bqr = BSDFQueryRecord(wi);
-                bqr.p = its.p;
-                bqr.uv = its.uv;
+                bqr.its = &its;
                 pdf_mat_mat = b1->pdf(bqr);
                 sample_mat_mat = b1->sample(bqr, sampler->next2D());
                 newray_wo = its.shFrame.toWorld(bqr.wo);
@@ -112,8 +110,7 @@ public:
                 if (!scene->rayIntersect(eqr2.shadowRay)) {
                     //sample bsdf
                     BSDFQueryRecord bqr2 = BSDFQueryRecord(wo2, wi2, ESolidAngle);
-                    bqr2.uv = its.uv;
-                    bqr2.p = its.p;
+                    bqr2.its = &its;
                     const Color3f sample_mat_ems = b1->eval(bqr2);
                     // compute w_ems
                     const float pdf_ems_ems = e->pdf(eqr2) / emitters_count;

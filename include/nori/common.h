@@ -136,6 +136,7 @@ class PhaseFunction;
 class ReconstructionFilter;
 class Sampler;
 class Scene;
+struct Intersection;
 
 /// Import cout, cerr, endl for debugging purposes
 using std::cout;

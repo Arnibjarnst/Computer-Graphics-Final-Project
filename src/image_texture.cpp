@@ -18,6 +18,7 @@
 
 #include <nori/object.h>
 #include <nori/texture.h>
+#include <nori/shape.h>
 #include <stb_image.h>
 #include <tbb/tbb.h>
 
@@ -76,8 +77,8 @@ public:
         );
     }
 
-    virtual Color3f eval(const Point2f& uv, const Vector4f& duvdxy) override {
-        const Point2f uv_scaled = Point2f(uv.x() * m_scale.x() + m_delta.x(), uv.y() * m_scale.y() + m_delta.y());
+    virtual Color3f eval(const Intersection& its) override {
+        const Point2f uv_scaled = Point2f(its.uv.x() * m_scale.x() + m_delta.x(), its.uv.y() * m_scale.y() + m_delta.y());
         Point2i ij = uvmap(uv_scaled);
         return m_map[ij.y() * m_width + ij.x()];
     }
@@ -206,10 +207,10 @@ public:
             );
         }
     }
-    Color3f Lookup(const Point2f &uv, const Vector4f &duvdxy) const {
+    Color3f Lookup(const Point2f &uv, const Vector2f &duvdx, const Vector2f& duvdy) const {
         float w = std::max(
-            std::max(std::abs(duvdxy[0]), std::abs(duvdxy[1])),
-            std::max(std::abs(duvdxy[2]), std::abs(duvdxy[3]))
+            std::max(std::abs(duvdx[0]), std::abs(duvdx[1])),
+            std::max(std::abs(duvdy[0]), std::abs(duvdy[1]))
         );
 
         float level = pyramid.size() - 1 + log2(std::max(w, float(1e-8)));
@@ -320,6 +321,22 @@ public:
         m_scale = props.getVector2("scale", Vector2f(1.0f));
     }
 
+    virtual Color3f eval(const Intersection &its) override {
+        int call_count = 0;
+        for (int i = 0; i < mipmap->level_counter.size(); i++) call_count += mipmap->level_counter[i];
+        if (call_count % 1000000 == 0) {
+            std::string s = "";
+            for (int i = 0; i < mipmap->level_counter.size(); i++)
+                s += std::to_string(mipmap->level_counter[i]) + ", ";
+            std::cout << s << '\n';
+        }
+        const Point2f uv_scaled = Point2f(its.uv.x() * m_scale.x(), its.uv.y() * m_scale.y()) + m_delta;
+        const Vector2f duvdx = Vector2f(its.dudx * m_scale.x(), its.dvdx * m_scale.y());
+        const Vector2f duvdy = Vector2f(its.dudy * m_scale.x(), its.dvdy * m_scale.y());
+
+        return mipmap->Lookup(uv_scaled, duvdx, duvdy);
+    }
+
     virtual std::string toString() const {
         return tfm::format(
             "ImageTexture[\n"
@@ -331,26 +348,6 @@ public:
             m_delta.toString(),
             m_scale.toString()
         );
-    }
-
-    virtual Color3f eval(const Point2f& uv, const Vector4f &duvdxy) override {
-        //int call_count = 0;
-        //for (int i = 0; i < mipmap->level_counter.size(); i++) call_count += mipmap->level_counter[i];
-        //if (call_count % 20000000 == 0) {
-        //    std::cout << mipmap->level_counter[0] << ' ' << mipmap->level_counter[1] << ' '
-        //        << mipmap->level_counter[2] << ' ' << mipmap->level_counter[3] << ' ' << mipmap->level_counter[4] << ' '
-        //        << mipmap->level_counter[5] << ' ' << mipmap->level_counter[6] << ' ' << mipmap->level_counter[7] << ' '
-        //        << mipmap->level_counter[8] << ' ' << mipmap->level_counter[9] << ' ' << mipmap->level_counter[10] << ' '
-        //        << mipmap->level_counter[11] << ' ' << mipmap->level_counter[12] << ' ' << mipmap->level_counter[13] << '\n';
-        //}
-        const Point2f uv_scaled = Point2f(uv.x() * m_scale.x(), uv.y() * m_scale.y()) + m_delta;
-        const Vector4f duvdxy_scaled = Vector4f(
-            duvdxy[0] * m_scale.x(),
-            duvdxy[1] * m_scale.x(),
-            duvdxy[2] * m_scale.y(),
-            duvdxy[3] * m_scale.y()
-        );
-        return mipmap->Lookup(uv_scaled, duvdxy_scaled);
     }
 private:
     Point2i uvmap(const Point2f& uv) const {

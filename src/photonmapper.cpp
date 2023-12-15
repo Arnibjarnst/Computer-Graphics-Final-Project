@@ -82,8 +82,7 @@ public:
 
 
                 BSDFQueryRecord bsdfQuery = BSDFQueryRecord(its.shFrame.toLocal(-ray.d));
-                bsdfQuery.uv = its.uv;
-                bsdfQuery.p = its.p;
+                bsdfQuery.its = &its;
 
                 Color3f bsdfValue = bsdf->sample(bsdfQuery, sampler->next2D());
 
@@ -147,8 +146,7 @@ public:
                         its.shFrame.toLocal(photon.getDirection()),
                         ESolidAngle
                     );
-                    photonBsdfQuery.p = its.p;
-                    photonBsdfQuery.uv = its.uv;
+                    photonBsdfQuery.its = &its;
                     photonPower += photon.getPower() * bsdf->eval(photonBsdfQuery);
                 }
                 L += t * photonPower * INV_PI / (m_photonRadius * m_photonRadius * m_emittedCount);
@@ -160,8 +158,7 @@ public:
             t /= successProbability;
 
             BSDFQueryRecord bsdfQuery = BSDFQueryRecord(wi);
-            bsdfQuery.uv = its.uv;
-            bsdfQuery.p = its.p;
+            bsdfQuery.its = &its;
 
             t *= bsdf->sample(bsdfQuery, sampler->next2D());
 

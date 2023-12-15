@@ -61,8 +61,7 @@ public:
                     Vector3f wo = Warp::squareToCosineHemisphere(sampler->next2D());
                     samples[j].wo = wo;
                     BSDFQueryRecord bqr = BSDFQueryRecord(wi, wo, ESolidAngle);
-                    bqr.p = its.p;
-                    bqr.uv = its.uv;
+                    bqr.its = &its;
                     samples[j].bsdf = b->eval(bqr) * Frame::cosTheta(wo);
                     samples[j].g = b->pdf(bqr);
                     samples[j].weight = b->pdf(bqr) / Warp::squareToCosineHemispherePdf(wo);
@@ -82,8 +81,7 @@ public:
             }
             // Importance sampling, if b is not diffuse or weight_sum was zero
             BSDFQueryRecord bqr = BSDFQueryRecord(wi);
-            bqr.p = its.p;
-            bqr.uv = its.uv;
+            bqr.its = &its;
             t *=  its.mesh->getBSDF()->sample(bqr, sampler->next2D());
             // Prepare next iteration
             ray = Ray3f(its.p, its.shFrame.toWorld(bqr.wo));

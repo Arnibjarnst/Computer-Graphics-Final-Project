@@ -85,6 +85,12 @@ public:
                     NoriObjectFactory::createInstance("gaussian", PropertyList()));
             m_rfilter->activate();
         }
+
+        m_dx = m_sampleToCamera * Point3f(m_invOutputSize.x(), 0.0f, 0.0f)
+            - m_sampleToCamera * Point3f(0.0f);
+
+        m_dy = m_sampleToCamera * Point3f(0.0f, m_invOutputSize.y(), 0.0f)
+            - m_sampleToCamera * Point3f(0.0f);
     }
 
     Color3f sampleRay(Ray3f &ray,
@@ -96,14 +102,8 @@ public:
             samplePosition.x() * m_invOutputSize.x(),
             samplePosition.y() * m_invOutputSize.y(), 0.0f);
 
-        Point3f nearPx = m_sampleToCamera * Point3f(
-            (samplePosition.x() + 1) * m_invOutputSize.x(),
-            samplePosition.y() * m_invOutputSize.y(), 0.0f);
-
-        Point3f nearPy = m_sampleToCamera * Point3f(
-            samplePosition.x() * m_invOutputSize.x(),
-            (samplePosition.y() + 1) * m_invOutputSize.y(), 0.0f);
-
+        Point3f nearPx = nearP + m_dx;
+        Point3f nearPy = nearP + m_dy;
 
         /* Turn into a normalized ray direction, and
            adjust the ray interval accordingly */
@@ -168,6 +168,8 @@ private:
     float m_fov;
     float m_nearClip;
     float m_farClip;
+    Point3f m_dx;
+    Point3f m_dy;
 };
 
 NORI_REGISTER_CLASS(PerspectiveCamera, "perspective");

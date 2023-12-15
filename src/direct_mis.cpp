@@ -49,8 +49,7 @@ public:
                     its.shFrame.toLocal(-ray.d),
                     its.shFrame.toLocal(lightQuery.wi),
                     ESolidAngle);
-                bsdfEvalQuery.uv = its.uv;
-                bsdfEvalQuery.p = its.p;
+                bsdfEvalQuery.its = &its;
                 Color3f emitterScatter = bsdf->eval(bsdfEvalQuery);
 
                 const float wEm = lightQuery.pdf / (lightQuery.pdf / scene->getLights().size() + bsdf->pdf(bsdfEvalQuery));
@@ -60,8 +59,7 @@ public:
         }
 
         BSDFQueryRecord bsdfQuery = BSDFQueryRecord(its.shFrame.toLocal(-ray.d));
-        bsdfQuery.uv = its.uv;
-        bsdfQuery.p = its.p;
+        bsdfQuery.its = &its;
         const Color3f bsdfValue = bsdf->sample(bsdfQuery, sampler->next2D());
 
         Color3f Lmat(0.0f);

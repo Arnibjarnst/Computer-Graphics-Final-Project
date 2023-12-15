@@ -31,8 +31,7 @@ public:
 
         const BSDF* brdf = its.mesh->getBSDF();
         BSDFQueryRecord bsdfQuery = BSDFQueryRecord(its.shFrame.toLocal(-ray.d));
-        bsdfQuery.uv = its.uv;
-        bsdfQuery.p = its.p;
+        bsdfQuery.its = &its;
 
         Color3f brdfValue = brdf->sample(bsdfQuery, sampler->next2D());
 

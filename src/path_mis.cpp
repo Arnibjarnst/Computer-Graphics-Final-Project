@@ -47,9 +47,7 @@ public:
             const BSDF* bsdf = its.mesh->getBSDF();
             const Vector3f wi = its.shFrame.toLocal(-ray.d);
             BSDFQueryRecord bsdfQuery = BSDFQueryRecord(wi);
-            bsdfQuery.uv = its.uv;
-            bsdfQuery.duvdxy = Vector4f(its.dudx, its.dvdx, its.dudy, its.dvdy);
-            bsdfQuery.p = its.p;
+            bsdfQuery.its = &its;
 
             Color3f bsdfValue = bsdf->sample(bsdfQuery, sampler->next2D());
 
@@ -69,9 +67,7 @@ public:
                         wi,
                         wo,
                         ESolidAngle);
-                    bsdfEvalQuery.uv = its.uv;
-                    bsdfEvalQuery.duvdxy = Vector4f(its.dudx, its.dvdx, its.dudy, its.dvdy);
-                    bsdfEvalQuery.p = its.p;
+                    bsdfEvalQuery.its = &its;
                     Color3f bsdfValueToLight = bsdf->eval(bsdfEvalQuery);
 
                     const float wEm = lightQuery.pdf / (lightQuery.pdf / scene->getLights().size() + bsdf->pdf(bsdfEvalQuery));
