@@ -180,6 +180,8 @@ protected:
         float getOrientationCost() {return cone.getOrientationCost();}
 
         float getImportance(Point3f p, Normal3f n) const {
+            return 1 / (bbox.getCenter() - p).squaredNorm();
+            /*
             if (bbox.contains(p)) return power;
             Vector3f pc = (bbox.getCenter() - p).normalized();
             float dSquared = (bbox.getCenter() - p).squaredNorm();
@@ -194,6 +196,7 @@ protected:
             float thetaP = std::max(theta - cone.theta_o - theta_u, 0.f);
             float thetaP_i = std::max(theta_i - theta_u, 0.f);
             return thetaP < cone.theta_e ? (cos(thetaP_i)) * power / dSquared * cos(thetaP) : 0.f;
+            */
         }
     };
 

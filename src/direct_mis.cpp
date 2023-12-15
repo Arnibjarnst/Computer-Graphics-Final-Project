@@ -33,7 +33,8 @@ public:
 
 
         // random light in scene
-        const Emitter* light = scene->getRandomEmitter(sampler->next1D());
+        LightBVHQueryRecord lqr(its.p, its.shFrame.n);
+        const Emitter* light = scene->getRandomEmitter(lqr);
 
         // radiance of a sampled point on light source
         EmitterQueryRecord lightQuery = EmitterQueryRecord(its.p);
@@ -53,9 +54,9 @@ public:
                 bsdfEvalQuery.p = its.p;
                 Color3f emitterScatter = bsdf->eval(bsdfEvalQuery);
 
-                const float wEm = lightQuery.pdf / (lightQuery.pdf / scene->getLights().size() + bsdf->pdf(bsdfEvalQuery));
+                const float wEm = lightQuery.pdf / (lightQuery.pdf * lqr.pdf + bsdf->pdf(bsdfEvalQuery));
 
-                Lem = wEm * radiance * cos * emitterScatter;
+                Lem = lqr.pdf > Epsilon ? wEm * radiance * cos * emitterScatter : Color3f(0.f);
             }
         }
 
@@ -74,7 +75,7 @@ public:
                 Color3f radiance = itsMat.mesh->getEmitter()->eval(eq);
 
                 const float pdfMat = bsdf->pdf(bsdfQuery);
-                const float wMat = pdfMat / (pdfMat + itsMat.mesh->getEmitter()->pdf(eq) / scene->getLights().size());
+                const float wMat = pdfMat / (pdfMat + itsMat.mesh->getEmitter()->pdf(eq) * lqr.pdf);
 
                 Lmat = wMat * bsdfValue * radiance;
             }

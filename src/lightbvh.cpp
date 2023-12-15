@@ -17,6 +17,7 @@
 */
 
 #include <nori/lightbvh.h>
+#include <nori/lightcone.h>
 #include <nori/sampler.h>
 #include <nori/timer.h>
 #include <tbb/tbb.h>
@@ -37,9 +38,11 @@ NORI_NAMESPACE_BEGIN
 /* Bin data structure for counting triangles and computing their bounding box */
 struct Bins {
     static const int BIN_COUNT = 16;
-    Bins() { memset(counts, 0, sizeof(uint32_t) * BIN_COUNT); }
-    uint32_t counts[BIN_COUNT];
-    BoundingBox3f bbox[BIN_COUNT];
+    Bins() { 
+        memset(counts, 0, sizeof(uint32_t) * BIN_COUNT); 
+    }
+    BoundingBox3f bbox[BIN_COUNT]; 
+    uint32_t counts[BIN_COUNT];  
 };
 
 /**
@@ -408,8 +411,6 @@ const Emitter *LightBVH::sample(LightBVHQueryRecord &lRec, Sampler *sampler) con
 
     if (m_nodes.empty()) return nullptr;
 
-    uint32_t f = 0;
-
     while (true) {
         const LightBVHNode &node = m_nodes[node_idx];
 
@@ -423,9 +424,10 @@ const Emitter *LightBVH::sample(LightBVHQueryRecord &lRec, Sampler *sampler) con
                 lRec.pdf = 0.f;
                 continue;
             } 
-
-            importanceL /= importanceL + importanceR;
-            importanceR /= importanceL + importanceR;
+            float sum = importanceL + importanceR;
+            importanceL = importanceL / sum;
+            importanceR = importanceR / sum;
+            //cout << tfm::format("L: %f R: %f", importanceL, importanceR) << endl;
             float sample = sampler->next1D();
 
             if (sample < importanceL) {
@@ -442,7 +444,8 @@ const Emitter *LightBVH::sample(LightBVHQueryRecord &lRec, Sampler *sampler) con
             uint32_t random = (uint32_t) (size * sampler->next1D());
             uint32_t idx = m_indices[node.start() + random];
             const Emitter *emitter = getEmitter(idx);
-            lRec.pdf /= size;
+            lRec.pdf /= (float) size;
+            //cout << tfm::format("pdf = %f size = %d", lRec.pdf, size) << endl;
             return emitter;
         }
     }
