@@ -54,7 +54,7 @@ public:
                 bsdfEvalQuery.p = its.p;
                 Color3f emitterScatter = bsdf->eval(bsdfEvalQuery);
 
-                const float wEm = lightQuery.pdf / (lightQuery.pdf * lqr.pdf + bsdf->pdf(bsdfEvalQuery));
+                const float wEm = (lightQuery.pdf * lqr.pdf) / (lightQuery.pdf * lqr.pdf + bsdf->pdf(bsdfEvalQuery));
 
                 Lem = lqr.pdf > Epsilon ? wEm * radiance * cos * emitterScatter : Color3f(0.f);
             }
@@ -75,7 +75,7 @@ public:
                 Color3f radiance = itsMat.mesh->getEmitter()->eval(eq);
 
                 const float pdfMat = bsdf->pdf(bsdfQuery);
-                const float wMat = pdfMat / (pdfMat + itsMat.mesh->getEmitter()->pdf(eq) * lqr.pdf);
+                const float wMat = pdfMat / (pdfMat + itsMat.mesh->getEmitter()->pdf(eq) / scene->getLights().size());
 
                 Lmat = wMat * bsdfValue * radiance;
             }
