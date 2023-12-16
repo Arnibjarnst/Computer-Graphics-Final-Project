@@ -40,7 +40,7 @@ scene_dict = {
     "walls" : {
         "type" : "obj",
         "filename" : "../meshes/walls.obj",
-        "to_world" : mi.ScalarTransform4f.scale([10, 10, 10]),
+        "to_world" : mi.ScalarTransform4f.scale([100, 10, 20]),
         "bsdf" : {
             "type" : "diffuse",
             "reflectance" : {
@@ -51,13 +51,13 @@ scene_dict = {
     },
     "emitter" : {
         "type" : "sphere",
-        "center" : [0, 100, 100],
+        "center" : [0, 50, 100],
         "radius" : 20,
         "emitter" : {
             "type" : "area",
             "radiance" : {
                 "type" : "rgb",
-                "value" : [50, 50, 50],
+                "value" : [30, 30, 30],
             }
         }
     }

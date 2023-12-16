@@ -23,7 +23,7 @@
 	<mesh type="obj">
 		<string name="filename" value="../meshes/walls.obj"/>
 		<transform name="toWorld">
-			<scale value="10,10,10"/>
+			<scale value="100,10,20"/>
 		</transform>
 
 		<bsdf type="diffuse">
@@ -43,7 +43,7 @@
 			<float name="metallic" value="0.0" />
 			<float name="specular" value="0.5" />
 			<float name="anisotropic" value="0.0" />
-			<float name="flatness" value="0.0" />
+			<float name="subsurface" value="0.0" />
 		</bsdf>
 	</mesh>
 
@@ -59,7 +59,7 @@
 			<float name="metallic" value="0.0" />
 			<float name="specular" value="0.5" />
 			<float name="anisotropic" value="0.0" />
-			<float name="flatness" value="0.1" />
+			<float name="subsurface" value="0.1" />
 		</bsdf>
 	</mesh>
 
@@ -75,7 +75,7 @@
 			<float name="metallic" value="0.0" />
 			<float name="specular" value="0.5" />
 			<float name="anisotropic" value="0.0" />
-			<float name="flatness" value="0.2" />
+			<float name="subsurface" value="0.2" />
 		</bsdf>
 	</mesh>
 
@@ -91,7 +91,7 @@
 			<float name="metallic" value="0.0" />
 			<float name="specular" value="0.5" />
 			<float name="anisotropic" value="0.0" />
-			<float name="flatness" value="0.3" />
+			<float name="subsurface" value="0.3" />
 		</bsdf>
 	</mesh>
 
@@ -107,7 +107,7 @@
 			<float name="metallic" value="0.0" />
 			<float name="specular" value="0.5" />
 			<float name="anisotropic" value="0.0" />
-			<float name="flatness" value="0.4" />
+			<float name="subsurface" value="0.4" />
 		</bsdf>
 	</mesh>
 
@@ -123,7 +123,7 @@
 			<float name="metallic" value="0.0" />
 			<float name="specular" value="0.5" />
 			<float name="anisotropic" value="0.0" />
-			<float name="flatness" value="0.5" />
+			<float name="subsurface" value="0.5" />
 		</bsdf>
 	</mesh>
 
@@ -139,7 +139,7 @@
 			<float name="metallic" value="0.0" />
 			<float name="specular" value="0.5" />
 			<float name="anisotropic" value="0.0" />
-			<float name="flatness" value="0.6" />
+			<float name="subsurface" value="0.6" />
 		</bsdf>
 	</mesh>
 
@@ -155,7 +155,7 @@
 			<float name="metallic" value="0.0" />
 			<float name="specular" value="0.5" />
 			<float name="anisotropic" value="0.0" />
-			<float name="flatness" value="0.7" />
+			<float name="subsurface" value="0.7" />
 		</bsdf>
 	</mesh>
 
@@ -171,7 +171,7 @@
 			<float name="metallic" value="0.0" />
 			<float name="specular" value="0.5" />
 			<float name="anisotropic" value="0.0" />
-			<float name="flatness" value="0.8" />
+			<float name="subsurface" value="0.8" />
 		</bsdf>
 	</mesh>
 
@@ -187,7 +187,7 @@
 			<float name="metallic" value="0.0" />
 			<float name="specular" value="0.5" />
 			<float name="anisotropic" value="0.0" />
-			<float name="flatness" value="0.9" />
+			<float name="subsurface" value="0.9" />
 		</bsdf>
 	</mesh>
 
@@ -203,17 +203,17 @@
 			<float name="metallic" value="0.0" />
 			<float name="specular" value="0.5" />
 			<float name="anisotropic" value="0.0" />
-			<float name="flatness" value="1.0" />
+			<float name="subsurface" value="1.0" />
 		</bsdf>
 	</mesh>
 
 
 	<mesh type="sphere">
-		<point name="center" value="0 100 100" />
+		<point name="center" value="0 50 100" />
 		<float name="radius" value="20" />
 
 		<emitter type="area">
-			<color name="radiance" value="50 50 50"/>
+			<color name="radiance" value="30 30 30"/>
 		</emitter>
 	</mesh>
 
