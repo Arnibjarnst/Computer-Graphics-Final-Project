@@ -24,6 +24,24 @@
 
 NORI_NAMESPACE_BEGIN
 
+bool DEBUG = false;
+Color3f DEBUG_COLORS[14] = {
+    Color3f(47, 79, 79) / 255.0f,
+    Color3f(34, 139, 34) / 255.0f,
+    Color3f(25, 25, 112) / 255.0f,
+    Color3f(139, 0, 0) / 255.0f,
+    Color3f(255, 140, 0) / 255.0f,
+    Color3f(222, 184, 135) / 255.0f,
+    Color3f(0, 255, 0) / 255.0f,
+    Color3f(0, 191, 255) / 255.0f,
+    Color3f(0, 0, 255) / 255.0f,
+    Color3f(255, 0, 255) / 255.0f,
+    Color3f(255, 255, 84) / 255.0f,
+    Color3f(221, 160, 221) / 255.0f,
+    Color3f(255, 20, 147) / 255.0f,
+    Color3f(127, 255, 212) / 255.0f
+};
+
 enum class WrapMethod {
     Repeat,
     Clamp
@@ -138,7 +156,6 @@ private:
 
 class MipMap {
 public:
-    mutable std::vector<int> level_counter;
     MipMap(const Color3f *img, const Point2i &res, WrapMethod wrap) : res(res), wrap(wrap) {
         Point2i newRes((1 << int(ceil(log2(res.x())))), (1 << int(ceil(log2(res.y())))));
 
@@ -177,7 +194,6 @@ public:
 
         int nLevels = 1 + log2(std::max(res.x(), res.y()));
         pyramid.resize(nLevels);
-        level_counter = std::vector<int>(nLevels, 0);
         
         pyramid[0].reset(
             new UVArray(res.x(), res.y(), resampledImage ? resampledImage.get() : img)
@@ -215,7 +231,9 @@ public:
 
         float level = pyramid.size() - 1 + log2(std::max(w, float(1e-8)));
 
-        level_counter[clamp(int(level), 0, level_counter.size()-1)]++;
+        if (DEBUG) {
+            return DEBUG_COLORS[clamp(int(level), 0, pyramid.size())];
+        }
 
         if (level < 0)
             return triangle(0, uv);
@@ -322,14 +340,6 @@ public:
     }
 
     virtual Color3f eval(const Intersection &its) override {
-        int call_count = 0;
-        for (int i = 0; i < mipmap->level_counter.size(); i++) call_count += mipmap->level_counter[i];
-        if (call_count % 1000000 == 0) {
-            std::string s = "";
-            for (int i = 0; i < mipmap->level_counter.size(); i++)
-                s += std::to_string(mipmap->level_counter[i]) + ", ";
-            std::cout << s << '\n';
-        }
         const Point2f uv_scaled = Point2f(its.uv.x() * m_scale.x(), its.uv.y() * m_scale.y()) + m_delta;
         const Vector2f duvdx = Vector2f(its.dudx * m_scale.x(), its.dvdx * m_scale.y());
         const Vector2f duvdy = Vector2f(its.dudy * m_scale.x(), its.dvdy * m_scale.y());
@@ -348,19 +358,6 @@ public:
             m_delta.toString(),
             m_scale.toString()
         );
-    }
-private:
-    Point2i uvmap(const Point2f& uv) const {
-        if (m_wrap == WrapMethod::Clamp)
-            return Point2i(
-                clamp(int(uv.x() * m_width), 0, m_width - 1),
-                clamp(int(uv.y() * m_height), 0, m_height - 1)
-            );
-        if (m_wrap == WrapMethod::Repeat)
-            return Point2i(
-                mod(int(uv.x() * m_width), m_width),
-                mod(int(uv.y() * m_height), m_height)
-            );
     }
 protected:
     Point2f m_delta;

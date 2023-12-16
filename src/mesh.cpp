@@ -142,8 +142,6 @@ void Mesh::setHitInformation(uint32_t index, const Ray3f &ray, Intersection & it
         Vector3f dp02 = p0 - p2, dp12 = p1 - p2;
         float det = duv02[0] * duv12[1] - duv02[1] * duv12[0];
         if (det == 0) {
-            // should this be (p1-p0).cross(p2-p0) like geoFrame
-            // or be in the other direction
             coordinateSystem((p2 - p0).cross(p1 - p0).normalized(), its.dpdu, its.dpdv);
         }
         else {
