@@ -156,13 +156,15 @@ private:
 
 class MipMap {
 public:
-    MipMap(const Color3f *img, const Point2i &res, WrapMethod wrap) : res(res), wrap(wrap) {
+    MipMap(const Color3f *img, Point2i &res, WrapMethod wrap) : res(res), wrap(wrap) {
         Point2i newRes((1 << int(ceil(log2(res.x())))), (1 << int(ceil(log2(res.y())))));
 
         std::unique_ptr<Color3f[]> resampledImage = nullptr;
 
         if (newRes.x() != res.x() || newRes.y() != res.y()) {
             std::unique_ptr<ResampleWeight[]> sWeights = resampleWeights(res.x(), newRes.x());
+
+            resampledImage.reset(new Color3f[newRes.x() * newRes.y()]);
 
             tbb::parallel_for(
                 tbb::blocked_range<uint32_t>(0u, res.y(), 16), // what is grain size
@@ -176,8 +178,7 @@ public:
                                     origS = mod(origS, res.x());
                                 else if (wrap == WrapMethod::Clamp)
                                     origS = clamp(origS, 0, res.x() - 1);
-                                if (origS >= 0 && origS < res.x())
-                                    resampledImage[t * newRes.x() + s] += sWeights[s].weight[j] * img[t * res.x() + origS];
+                                resampledImage[t * newRes.x() + s] += sWeights[s].weight[j] * img[t * res.x() + origS];
                             }
                         }
                     }
@@ -186,10 +187,30 @@ public:
 
             std::unique_ptr<ResampleWeight[]> tWeights = resampleWeights(res.y(), newRes.y());
 
-            std::vector<Color3f*> resampleBufs;
-            //int nThreads = MaxThreadIndex();
-            //for (int i = 0; i < nThreads; ++i)
-            //    resampleBufs.push_back(new Color3f[newRes.y()]);
+            tbb::parallel_for(
+                tbb::blocked_range<uint32_t>(0u, newRes.x(), 16), // what is grain size
+                [&](const tbb::blocked_range<uint32_t>& range) {
+                    Color3f* temp = new Color3f[newRes.y()];
+                    for (uint32_t s = range.begin(); s != range.end(); ++s) {
+                        for (int t = 0; t < newRes.y(); ++t) {
+                            temp[t] = Color3f(0.0f);
+                            for (int j = 0; j < 4; ++j) {
+                                int offset = tWeights[t].firstTexel + j;
+                                if (wrap == WrapMethod::Repeat)
+                                    offset = mod(offset, res.y());
+                                else if (wrap == WrapMethod::Clamp)
+                                    offset = clamp(offset, 0, res.y() - 1);
+                                temp[t] += tWeights[t].weight[j] * resampledImage[offset * newRes.x() + s];
+                            }
+                        }
+                        for (int t = 0; t < newRes.y(); ++t)
+                            resampledImage[t * newRes.x() + s] = temp[t].cwiseAbs();
+                    }
+                    delete[] temp;
+                }
+            );
+
+            res = newRes;
         }
 
         int nLevels = 1 + log2(std::max(res.x(), res.y()));
@@ -250,7 +271,6 @@ public:
 
 private:
     std::unique_ptr<ResampleWeight[]> resampleWeights(int oldRes, int newRes) {
-        assert(newRes >= oldRes);
         std::unique_ptr<ResampleWeight[]> weights(new ResampleWeight[newRes]);
         float filterwidth = 2.f;
         for (int i = 0; i < newRes; ++i) {
