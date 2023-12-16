@@ -36,13 +36,15 @@
 NORI_NAMESPACE_BEGIN
 
 /* Bin data structure for counting triangles and computing their bounding box */
-struct Bins {
+struct LightBins {
     static const int BIN_COUNT = 16;
-    Bins() { 
+    LightBins() { 
         memset(counts, 0, sizeof(uint32_t) * BIN_COUNT); 
     }
     BoundingBox3f bbox[BIN_COUNT]; 
+    struct LightCone cone[BIN_COUNT];
     uint32_t counts[BIN_COUNT];  
+    float power[BIN_COUNT];
 };
 
 /**
@@ -114,21 +116,21 @@ public:
         /* Always split along the largest axis */
         int axis = node.bbox.getLargestAxis();
         float min = node.bbox.min[axis], max = node.bbox.max[axis],
-              inv_bin_size = Bins::BIN_COUNT / (max-min);
+              inv_bin_size = LightBins::BIN_COUNT / (max-min);
 
         /* Accumulate all triangles into bins */
-        Bins bins = tbb::parallel_reduce(
+        LightBins bins = tbb::parallel_reduce(
             tbb::blocked_range<uint32_t>(0u, size, GRAIN_SIZE),
-            Bins(),
+            LightBins(),
             /* MAP: Bin a number of triangles and return the resulting 'Bins' data structure */
-            [&](const tbb::blocked_range<uint32_t> &range, Bins result) {
+            [&](const tbb::blocked_range<uint32_t> &range, LightBins result) {
                 for (uint32_t i = range.begin(); i != range.end(); ++i) {
                     uint32_t f = start[i];
                     float centroid = bvh.getCentroid(f)[axis];
 
                     int index = std::min(std::max(
                         (int) ((centroid - min) * inv_bin_size), 0),
-                        (Bins::BIN_COUNT - 1));
+                        (LightBins::BIN_COUNT - 1));
 
                     result.counts[index]++;
                     result.bbox[index].expandBy(bvh.getBoundingBox(f));
@@ -136,9 +138,9 @@ public:
                 return result;
             },
             /* REDUCE: Combine two 'Bins' data structures */
-            [](const Bins &b1, const Bins &b2) {
-                Bins result;
-                for (int i=0; i < Bins::BIN_COUNT; ++i) {
+            [](const LightBins &b1, const LightBins &b2) {
+                LightBins result;
+                for (int i=0; i < LightBins::BIN_COUNT; ++i) {
                     result.counts[i] = b1.counts[i] + b2.counts[i];
                     result.bbox[i] = BoundingBox3f::merge(b1.bbox[i], b2.bbox[i]);
                 }
@@ -147,19 +149,19 @@ public:
         );
 
         /* Choose the best split plane based on the binned data */
-        BoundingBox3f bbox_left[Bins::BIN_COUNT];
+        BoundingBox3f bbox_left[LightBins::BIN_COUNT];
         bbox_left[0] = bins.bbox[0];
-        for (int i=1; i<Bins::BIN_COUNT; ++i) {
+        for (int i=1; i<LightBins::BIN_COUNT; ++i) {
             bins.counts[i] += bins.counts[i-1];
             bbox_left[i] = BoundingBox3f::merge(bbox_left[i-1], bins.bbox[i]);
         }
 
-        BoundingBox3f bbox_right = bins.bbox[Bins::BIN_COUNT-1], best_bbox_right;
+        BoundingBox3f bbox_right = bins.bbox[LightBins::BIN_COUNT-1], best_bbox_right;
         int64_t best_index = -1;
         float best_cost = (float) INTERSECTION_COST * size;
         float tri_factor = (float) INTERSECTION_COST / node.bbox.getSurfaceArea();
 
-        for (int i=Bins::BIN_COUNT - 2; i >= 0; --i) {
+        for (int i=LightBins::BIN_COUNT - 2; i >= 0; --i) {
             uint32_t prims_left = bins.counts[i], prims_right = (uint32_t) (end - start) - bins.counts[i];
             float sah_cost = 2.0f * TRAVERSAL_COST +
                 tri_factor * (prims_left * bbox_left[i].getSurfaceArea() +
