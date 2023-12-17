@@ -71,11 +71,12 @@ public:
             Ray3f matRay(its.p, its.shFrame.toWorld(bsdfQuery.wo));
             Intersection itsMat;
             if (scene->rayIntersect(matRay, itsMat) && itsMat.mesh->isEmitter()) {
+                const Emitter *e = itsMat.mesh->getEmitter();
                 EmitterQueryRecord eq(its.p, itsMat.p, itsMat.shFrame.n);
-                Color3f radiance = itsMat.mesh->getEmitter()->eval(eq);
-
+                Color3f radiance = e->eval(eq);
+                LightBVHQueryRecord lqrmat(its.p, its.shFrame.n);
                 const float pdfMat = bsdf->pdf(bsdfQuery);
-                const float wMat = pdfMat / (pdfMat + itsMat.mesh->getEmitter()->pdf(eq) / scene->getLights().size());
+                const float wMat = pdfMat / (pdfMat + e->pdf(eq) * scene->getRandomEmitterPdf(e, lqrmat));
 
                 Lmat = wMat * bsdfValue * radiance;
             }

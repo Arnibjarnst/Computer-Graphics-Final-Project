@@ -130,6 +130,7 @@ protected:
     MatrixXu      m_F;                   ///< Faces
 
     DiscretePDF m_pdf;
+    struct LightCone m_cone;
 };
 
 NORI_NAMESPACE_END

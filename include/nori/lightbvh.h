@@ -104,6 +104,8 @@ public:
         return m_lightcone;
     }
 
+    float pdf(const Emitter *emitter, LightBVHQueryRecord &lRec) const;
+
 protected:
     /**
      * \brief Compute the shape and primitive indices corresponding to
@@ -184,26 +186,31 @@ protected:
 
         float getOrientationCost() {return cone.getOrientationCost();}
 
-        float getImportance(Point3f p, Normal3f n) const {
-            return 1 / (bbox.getCenter() - p).squaredNorm();
-            /*
-            if (bbox.contains(p)) return power;
-            Vector3f pc = (bbox.getCenter() - p).normalized();
-            float dSquared = (bbox.getCenter() - p).squaredNorm();
-            float theta_i = std::acos(n.dot(pc));
-            float theta_u = 0.f;
-            for (int i = 0; i < 8; i++) {
-                Point3f corner = bbox.getCorner(i);
-                float theta_toCorner = std::acos(pc.dot((corner - p).normalized()));
-                theta_u = std::max(theta_u, theta_toCorner);
-            }
-            float theta = std::acos(-pc.dot(cone.axis));
-            float thetaP = std::max(theta - cone.theta_o - theta_u, 0.f);
-            float thetaP_i = std::max(theta_i - theta_u, 0.f);
-            return thetaP < cone.theta_e ? (cos(thetaP_i)) * power / dSquared * cos(thetaP) : 0.f;
-            */
-        }
     };
+
+    float getImportance(const struct LightBVHNode node, Point3f p, Normal3f n) const {
+        return getImportance(node.bbox, node.cone, node.power, p, n);
+    }
+
+    float getImportance(BoundingBox3f bbox, struct LightCone cone, float power, Point3f p, Normal3f n) const {
+        //return 1 / (bbox.getCenter() - p).squaredNorm();        
+        Vector3f pc = (bbox.getCenter() - p).normalized();
+        float dSquared = (bbox.getCenter() - p).squaredNorm();
+        float theta_i = std::acos(n.dot(pc));
+        float theta_u = 0.f;
+        for (int i = 0; i < 8; i++) {
+            Point3f corner = bbox.getCorner(i);
+            float theta_toCorner = std::acos(pc.dot((corner - p).normalized()));
+            theta_u = std::max(theta_u, theta_toCorner);
+        }
+        float theta = std::acos(-pc.dot(cone.axis));
+        float thetaP = std::max(theta - cone.theta_o - theta_u, 0.f);
+        float thetaP_i = std::max(theta_i - theta_u, 0.f);
+        //cout << tfm::format("power %f dSquared %f P %f Pi %f", power, dSquared, thetaP, thetaP_i) << endl;
+        if (bbox.contains(p)) return power;
+        //cout << tfm::format("P = %f o = %f e = %f theta = %f u = %f", thetaP, cone.theta_o, cone.theta_e, theta, theta_u) << endl;
+        return thetaP <= cone.theta_e ? abs(cos(thetaP_i)) * power / dSquared * cos(thetaP) : 0.f;
+    }
 
 private:
     std::vector<Emitter *> m_emitters;       //< List of meshes registered with the BVH

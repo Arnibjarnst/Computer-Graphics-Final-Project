@@ -159,6 +159,7 @@ public:
         struct LightCone cone_left[LightBins::BIN_COUNT];
         cone_left[0] = bins.cone[0];
         float power_left[LightBins::BIN_COUNT];
+        memset(power_left, 0, sizeof(float) * LightBins::BIN_COUNT);
         power_left[0] = bins.power[0];
         for (int i=1; i<LightBins::BIN_COUNT; ++i) {
             bins.counts[i] += bins.counts[i-1];
@@ -169,17 +170,17 @@ public:
 
         BoundingBox3f bbox_right = bins.bbox[LightBins::BIN_COUNT-1], best_bbox_right;
         struct LightCone cone_right = bins.cone[LightBins::BIN_COUNT-1], best_cone_right;
-        float power_right = bins.power[LightBins::BIN_COUNT-1], best_power_right;
+        float power_right = bins.power[LightBins::BIN_COUNT-1], best_power_right = 0;
         int64_t best_index = -1;
         //TODO: modify?
-        float best_cost = (float) INTERSECTION_COST * size;
+        float best_cost = (float) INTERSECTION_COST * size * 100000;
         float tri_factor = (float) INTERSECTION_COST / node.bbox.getSurfaceArea();
 
         for (int i=LightBins::BIN_COUNT - 2; i >= 0; --i) {
             uint32_t prims_left = bins.counts[i], prims_right = (uint32_t) (end - start) - bins.counts[i];
             float sah_cost = 2.0f * TRAVERSAL_COST +
                 tri_factor * (prims_left * bbox_left[i].getSurfaceArea() * cone_left[i].getOrientationCost() * power_left[i] +
-                              prims_right * bbox_right.getSurfaceArea() * cone_right.getOrientationCost() * power_right);
+                              prims_right * bbox_right.getSurfaceArea() * cone_right.getOrientationCost() * power_right); //saoh
             if (sah_cost < best_cost) {
                 best_cost = sah_cost;
                 best_index = i;
@@ -262,9 +263,10 @@ public:
 
     /// Single-threaded build function
     static void execute_serially(LightBVH &bvh, uint32_t node_idx, uint32_t *start, uint32_t *end, uint32_t *temp) {
+        cout << tfm::format("exec_ser start %d end %d", start, end) << endl;
         LightBVH::LightBVHNode &node = bvh.m_nodes[node_idx];
         uint32_t size = (uint32_t) (end - start);
-        float best_cost = (float) INTERSECTION_COST * size;
+        float best_cost = (float) INTERSECTION_COST * size * 100000;
         int64_t best_index = -1, best_axis = -1;
         float *left_areas = (float *) temp;
 
@@ -277,13 +279,15 @@ public:
 
             BoundingBox3f bbox;
             struct LightCone cone;
-            float power;
+            float power = 0;
             for (uint32_t i = 0; i<size; ++i) {
+                cout << tfm::format("build: o %f e %f i %d", cone.theta_o, cone.theta_e, i) << endl;
                 uint32_t f = *(start + i);
                 bbox.expandBy(bvh.getBoundingBox(f));
                 cone.expandBy(bvh.getLightCone(f));
+                cout << tfm::format("build: o %f e %f", cone.theta_o, cone.theta_e) << endl;
                 power += bvh.getPower(f);
-                left_areas[i] = (float) bbox.getSurfaceArea() * power * cone.getOrientationCost();
+                left_areas[i] = (float) bbox.getSurfaceArea() * cone.getOrientationCost() * power; //saoh
             }
             if (axis == 0)
                 node.bbox = bbox;
@@ -301,13 +305,13 @@ public:
                 power += bvh.getPower(f);
 
                 float left_area = left_areas[i-1];
-                float right_area = bbox.getSurfaceArea() * power * cone.getOrientationCost();
+                float right_area = bbox.getSurfaceArea() * cone.getOrientationCost() * power; //saoh
                 uint32_t prims_left = i;
                 uint32_t prims_right = size-i;
                 float sah_cost = 2.0f * TRAVERSAL_COST +
                     tri_factor * (prims_left * left_area +
                                   prims_right * right_area);
-
+                cout << sah_cost << endl;
                 if (sah_cost < best_cost) {
                     best_cost = sah_cost;
                     best_index = i;
@@ -334,6 +338,29 @@ public:
         node.inner.rightChild = node_idx_right;
         node.inner.axis = best_axis;
         node.inner.flag = 0;
+
+        BoundingBox3f bbox_left, bbox_right;
+        struct LightCone cone_left, cone_right;
+        float power_left = 0, power_right = 0;
+
+        uint32_t *idx = start;
+        for (; idx < start + left_count; idx++) {
+            cone_left.expandBy(bvh.getLightCone(*idx));
+            bbox_left.expandBy(bvh.getBoundingBox(*idx));
+            power_left += bvh.getPower(*idx);
+        }
+        for (; idx < end; idx++){
+            cone_right.expandBy(bvh.getLightCone(*idx));
+            bbox_right.expandBy(bvh.getBoundingBox(*idx));
+            power_right += bvh.getPower(*idx);
+        }
+        bvh.m_nodes[node_idx_left].bbox = bbox_left;
+        bvh.m_nodes[node_idx_left].cone = cone_left;
+        bvh.m_nodes[node_idx_left].power = power_left;
+        
+        bvh.m_nodes[node_idx_right].bbox = bbox_right;
+        bvh.m_nodes[node_idx_right].cone = cone_right;
+        bvh.m_nodes[node_idx_right].power = power_right;
 
         execute_serially(bvh, node_idx_left, start, start + left_count, temp);
         execute_serially(bvh, node_idx_right, start+left_count, end, temp + left_count);
@@ -410,10 +437,13 @@ void LightBVH::build() {
     }
     cout << "done (took " << timer.elapsedString() << " and "
         << memString(sizeof(LightBVHNode) * m_nodes.size() + sizeof(uint32_t)*m_indices.size())
-        << ", SAH cost = " << stats.first
+        << ", SAOH cost = " << stats.first 
         << ")." << endl;
 
     m_nodes = std::move(compactified);
+    for (uint32_t idx = 0; idx < 7; idx ++){
+        cout << tfm::format("index %d (isLeaf %d), rchild %d, cone %f %f, power %f", idx, m_nodes[idx].isLeaf(), m_nodes[idx].inner.rightChild, m_nodes[idx].cone.theta_o, m_nodes[idx].cone.theta_e, m_nodes[idx].power) << endl;
+    }
 }
 
 std::pair<float, uint32_t> LightBVH::statistics(uint32_t node_idx) const {
@@ -447,9 +477,10 @@ const Emitter *LightBVH::sample(LightBVHQueryRecord &lRec, Sampler *sampler) con
 
         if (node.isInner()) {
             // Inner node: get children's importance and sample one of them w/ prob proportional to importance
-            float importanceL = m_nodes[node_idx +1].getImportance(lRec.p, lRec.n);
-            float importanceR = m_nodes[node.inner.rightChild].getImportance(lRec.p, lRec.n);
-
+            //cout << tfm::format("index %d rChild %d powerL %f powerR %f", node_idx, node.inner.rightChild, m_nodes[node_idx +1].power, m_nodes[node.inner.rightChild].power) << endl;
+            float importanceL = getImportance(m_nodes[node_idx +1], lRec.p, lRec.n);
+            float importanceR = getImportance(m_nodes[node.inner.rightChild], lRec.p, lRec.n);
+            //cout << tfm::format("sample: L = %f, R = %f", importanceL, importanceR) << endl;
             if (importanceL == 0.f && importanceR == 0.f) {
                 node_idx += 1;
                 lRec.pdf = 0.f;
@@ -478,6 +509,49 @@ const Emitter *LightBVH::sample(LightBVHQueryRecord &lRec, Sampler *sampler) con
             lRec.pdf /= (float) size;
             //cout << tfm::format("pdf = %f size = %d", lRec.pdf, size) << endl;
             return emitter;
+        }
+    }
+}
+
+float LightBVH::pdf(const Emitter *emitter, LightBVHQueryRecord &lRec) const {
+    uint32_t node_idx = 0;
+    float pdf = 1.f;
+    Point3f pos = emitter->getBoundingBox().getCenter();
+
+    if (m_nodes.empty()) return 0.f;
+
+    while(true) {
+        const LightBVHNode &node = m_nodes[node_idx];
+
+        if (node.isInner()) {
+            float importanceL = getImportance(m_nodes[node_idx +1], lRec.p, lRec.n);
+            float importanceR = getImportance(m_nodes[node.inner.rightChild], lRec.p, lRec.n);
+            //cout << tfm::format("pdf: L = %f, R = %f", importanceL, importanceR) << endl;
+
+            if (importanceL == 0.f && importanceR == 0.f) {
+                node_idx += 1;
+                return 0.f;
+            } 
+            float sum = importanceL + importanceR;
+            importanceL = importanceL / sum;
+            importanceR = importanceR / sum;
+            // EMitter is in left child
+            if (m_nodes[node_idx +1].bbox.contains(pos)) {
+                pdf *= importanceL;
+                node_idx = node_idx +1;
+            } 
+            //Emitter is in right child
+            else if (m_nodes[node.inner.rightChild].bbox.contains(pos)) {
+                pdf *= importanceR;
+                node_idx = node.inner.rightChild;
+            } 
+            //Emitter not in tree (Idk if this can happend but better safe than sorry)
+            else {
+                return 0.f;
+            }
+        } else {
+            //cout << pdf / (node.end() - node.start()) << endl;
+            return pdf / (node.end() - node.start());
         }
     }
 }

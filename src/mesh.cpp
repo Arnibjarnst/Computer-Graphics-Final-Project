@@ -177,7 +177,7 @@ LightCone Mesh::getLightCone(uint32_t index) const {
 
 LightCone Mesh::getLightCone() const  {
         LightCone res;
-        for (uint32_t i = 0; i < getPrimitiveCount(); i++) res.merge(getLightCone(i));
+        for (uint32_t i = 0; i < getPrimitiveCount(); i++) res.expandBy(getLightCone(i));
         return res;
     }
 

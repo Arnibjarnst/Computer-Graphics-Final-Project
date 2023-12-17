@@ -161,6 +161,17 @@ As we can see using MIS for the free path sampling significantly reduces noise w
 
 ### Intel's Open Image Denoise
 ### Object instancing
+**Relevant files**
+<ul>
+    <li> <code>subscene.h</code></li>
+    <li> <code>subscene.cpp</code></li>
+    <li> <code>instance.h</code></li>
+    <li> <code>instance.cpp</code></li>
+    <li> <code>scene.h</code></li>
+    <li> <code>scene.cpp</code></li>
+    <li> <code>object.h</code></li>
+    <li> <code>parser.cpp</code></li>
+</ul>
 The objective of this feature was to allow the existence of multiple instances of the same object without having to each time reload the mesh. To implement this feature, I relied on the structure suggested in an answer to an issue that was given on GitLab page of the project.
 
 To achieve this goal, I created two new classes: `SubScene` and `Instance`. In `Subscene`, a shape and BVH, together with a unique identifier can be stored. On the other hand, `Instance` is a subclass of `Shape` and can, referring to that identifier, physically insert the mesh into the scene. `Instance` also contains a transform describing how the coordinates should be translated from local object coordinates to world coordinates. Since more than one instance can be associated to a subscene, this effectively allows us to create multiple instances of the same object in the scene.
@@ -198,9 +209,17 @@ Total memory consumption was monitored with Task Manager
 ### Rendering on the cluster
 ### Modeling Meshes
 I initially had some troubles using the add-on for Blender to export objects to Nori, but with some modifications I got it working. I used Blender 2.90, as Blender 4.0.0 was reported to be too recent for the add-on, and the 2.90 version was mentioned in the GitHub page of the add-on itself. Furthermore, the `Support` argument of the `bl_info` variable had to be changed from `TESTING` to `COMMUNITY`.
-**TODO**: Insert description/source of meshes created/used.
+TODO: Insert description/source of meshes created/used.
 
 ### Resampled Importance Sampling (RIS)
+**Relevant files**
+<ul>
+    <li> <code>direct_ris_ems.cpp</code></li>
+    <li> <code>direct_ris_mats.cpp</code></li>
+    <li> <code>direct_ris_mis.cpp</code></li>
+    <li> <code>path_ris_mat.cpp</code></li>
+    <li> <code>path_ris_mis.cpp</code></li>
+</ul>
 In importance sampling, samples are drawn from a probability density function $g$ with values proportional to the function being integrated. However, drawing samples from $g$ requires its integration. RIS provides an alternative approach: it involves obtaining multiple samples $x_i$ from a base distribution $p$, easier to integrate, and selecting one of these with a probability proportional to $g(x_i)/p(x_i)$. To implemet this feature, I've created some new integrators, both for direct illumiation and path tracing.
 
 For direct illumination, our integrator estimates the value of the integral $\int_{H^2} f_r(x, \omega_i, \omega_o) L_i(x, \omega_i) \cos \theta_i \d \omega_i$. A good distribution to use for this estimation is $g(\omega_i) = pdf_{ems}(\omega_i) pdf_{mat}(\omega_i)$. On the other hand, there are multiple possible candidates for $p$: in the file `direct_ris_ems.cpp`, $p = pdf_{ems}$ is used, in `direct_ris_mats.cpp` we use $p = pdf_{mat}$, and in `direct_ris_hemi.cpp` $p$ is cosine distributed on the unit hemisphere.
@@ -241,6 +260,50 @@ For the validation, I limited the samples per pixel to 32, to better observe the
 </div>
 
 ### Many lights sampling
+**Relevant files**
+<ul>
+    <li> <code>emitter.h</code></li>
+    <li> <code>instance.h</code></li>
+    <li> <code>lightbvh.h</code></li>
+    <li> <code>lightcone.h</code></li>
+    <li> <code>mesh.h</code></li>
+    <li> <code>scene.h</code></li>
+    <li> <code>shape.h</code></li>
+    <li> <code>subscene.h</code></li>
+    <li> <code>arealight.cpp</code></li>
+    <li> <code>direct_ems.cpp</code></li>
+    <li> <code>direct_mis.cpp</code></li>
+    <li> <code>lightbvh.cpp</code></li>
+    <li> <code>mesh.cpp</code></li>
+    <li> <code>path_mis.cpp</code></li>
+    <li> <code>pointlight.cpp</code></li>
+    <li> <code>scene.cpp</code></li>
+    <li> <code>sphere.cpp</code></li>
+    <li> <code>spotlight.cpp</code></li>
+    <li> <code>spotlight_area.cpp</code></li>
+</ul>
+For this feature, I implemented the approach to the many light rendering problem described in "Estevez A.C. and Kulla C., Importance Sampling of Many Lights with Adaptive Tree Splitting, 2018". In syntesis, this approach consists of handling the emitter in a scene using a bounding volume hierarcy, which allows the renderer to determine the relative importance of an emitter when shading a specific point in the scene.
+
+For keeping track of the additional data that the technique described in the paper uses, I created a new data structure: the Light Cone. This datastructure is linked to a `LightBVHNode` (a cluster of lights) and keeps track of an axis and two different angles, `theta_o` that describes a cone around the axis including all the normals to the emitters in the cluster, and an additional angle `theta_o` which also accounts for the falloff of the meitters. In the file `lightcone.h`, this struct is implemented togheter with some utility functions, in particular to merge different cones togheter.
+
+In order to obtain these information from each Emitter, I added the functions `getLightCone()` and `getPower()` to the `emitter.h` interface. Since the `getLightCone()` function can depend on the shape of the emitter, I also added it to every sahpe and to the `shape.h` interface.
+
+For implemeting this hierarcy, I started taking the already present `bvh.{h, cpp}` files as reference, and changing it as needed in `lightbvh.{h, cpp}`. The first thing I needed to alter was the content of a node: the struct `LightBVHNode` used in this BVH contains, in addition to the bounding box of the light cluster, also the associated Light Cone and the power measure. Consequently, I also needed to change the `struct Bins` and the building procedure of the hierarcy to account for these additional measures. In particular, the Surface Area Heuristic (SAH) was changed with the Surface Area Orientation Heuristic (SAOH) described in the paper.  Since I did not completely comprehend the stopping criteria described in the paper to define when to create a leaf node, I amplified the initial `bestCost` variable in the original code to incentivize the process to separate each emitter into its own node. Changing the code for the building process was particularly challenging, both because of the sheer complexity of the method used (I had to refer back to the article describing this technique), and because the `execute_sequentially` function was not designed to store the bounding box into the child node (and clearly not the light cone and power value either).
+
+The tree traversal is implemented in the `sample` function of `LightBVH`. As described in the paper, this happend stochastically, selecting each time one of the two chidlren of the current node based on their importance with respect to the shading point. The importance function, detailed in the paper, depends on the distance between the shading point and the center of the cluster of lights and the power of the lights themselves, as well as on the cosine of the angle formed by the vector connecting these two points and  the axis of the cone associated with the cluster. To sample this tree, we use a new query record datastructure, the `LightBVHQueryRecord`, which contains the coordinates of the shading point and the relative surface normal, and is used to return the pdf of the sampling. To inisiate this whole operation, I created an alternative `getRandomEmitter` function in the `scene.h` interface, which directly calls `sample`.
+
+Finally, I implemented a `pdf` function that, given a `LightBVHQueryRecord` and a reference to the selected emitter, traverses the tree and returns the probability of sampling tthe given emitter while shading the current point. This function can get called from the integrator through the `getRandomEmitterPdf` function in the scene interface.
+
+To verificate this approach, I first of all verified that this new emitter sampling method did not cause any bias. Then, I rendered the `veach` scene from pa3, using both the `direct_ems` and the `direct_mis` integrators (`direct_mats` does not call the `getRandomEmitter` function). We can notice under the largest sphere that using this technique, more samples are correctly directed towards the bigger emitter, resulting in a larger number of points on the specular surfaces beneath.
+
+<div class="twentytwenty-container">
+    <img src="../../validation/manylights/veach/ems_ref.png" alt="EMS" class="img-responsive">
+    <img src="../../validation/manylights/veach/veach_ems.png" alt="EMS with manylights" class="img-responsive">
+    <img src="../../validation/manylights/veach/mis_ref.png" alt="MIS" class="img-responsive">
+    <img src="../../validation/manylights/veach/veach_mis.png" alt="MIS with manylights" class="img-responsive">
+</div>
+
+TODO scene with more emitters
 
 <!-- Bootstrap core CSS and JavaScript -->
 
