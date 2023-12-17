@@ -38,8 +38,6 @@ Scene::~Scene() {
     delete m_sampler;
     delete m_camera;
     delete m_integrator;
-    for(auto e : m_emitters)
-        delete e;
     m_emitters.clear();
 }
 

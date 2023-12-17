@@ -75,7 +75,7 @@ public:
                     EmitterQueryRecord eqr3 = EmitterQueryRecord(sec_ray.o, sec_its.p, sec_its.shFrame.n); // eqr3 == (next it) eqr1
                     LightBVHQueryRecord lqrmat(its.p, its.shFrame.n);
                     const Emitter *e = sec_its.mesh->getEmitter();
-                    const float pdf_ems_mat = e->pdf(eqr3) / scene->getRandomEmitterPdf(e, lqrmat);
+                    const float pdf_ems_mat = e->pdf(eqr3) * scene->getRandomEmitterPdf(e, lqrmat);
                     const float pdf_mat_mat = b1->pdf(bqr1);
                     w_mat = pdf_mat_mat / (pdf_mat_mat + pdf_ems_mat);
                 }
