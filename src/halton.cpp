@@ -107,27 +107,6 @@ const int Primes[PrimeTableSize] = {
     7703, 7717, 7723, 7727, 7741, 7753, 7757, 7759, 7789, 7793, 7817, 7823,
     7829, 7841, 7853, 7867, 7873, 7877, 7879, 7883, 7901, 7907, 7919 };
 
-float radicalInverse(int a, int b) {
-    float q = 0;
-    float bk = 1.0f / b;
-    while (a) {
-        q += mod(a, b) * bk;
-        a /= b;
-        bk /= b;
-    }
-    return q;
-}
-
-uint64_t InverseRadicalInverse(uint64_t inverse, int base, int nDigits) {
-    uint64_t index = 0;
-    for (int i = 0; i < nDigits; ++i) {
-        uint64_t digit = inverse % base;
-        inverse /= base;
-        index = index * base + digit;
-    }
-    return index;
-}
-
 
 class DigitPermutation {
 public:
@@ -148,7 +127,7 @@ public:
                 permutations[index] = digitValue;
             }
 
-            uint16_t *start = permutations + (digitIndex * base);
+            uint16_t* start = permutations + (digitIndex * base);
             rng.shuffle(start, start + base);
         }
     }
@@ -158,35 +137,70 @@ public:
     }
 private:
     int base, nDigits;
-    uint16_t *permutations;
+    uint16_t* permutations;
 };
+
+float radicalInverse(uint64_t a, int base) {
+    float invBase = 1.0f / base, invBaseM = 1;
+    uint64_t reversedDigits = 0;
+    while (a) {
+        uint64_t next = a / base;
+        uint64_t digit = a - next * base;
+        reversedDigits = reversedDigits * base + digit;
+        invBaseM *= invBase;
+        a = next;
+    }
+    return std::min(reversedDigits * invBaseM, (float) 0x1.fffffep-1);
+}
+
+float scrambledRadicalInverse(uint64_t a, int base, DigitPermutation perm) {
+    float invBase = 1.0f / base;
+    float invBaseM = 1;
+    uint64_t reversedDigits = 0;
+    int digitIndex = 0;
+    while (1 - (base - 1) * invBaseM < 1) {
+        uint64_t next = a / base;
+        int digitValue = a - next * base;
+        reversedDigits = reversedDigits * base + perm.permute(digitIndex, digitValue);
+        invBaseM *= invBase;
+        ++digitIndex;
+        a = next;
+    }
+    return std::min(invBaseM * reversedDigits, (float)0x1.fffffep-1);
+}
+
+uint64_t InverseRadicalInverse(uint64_t inverse, int base, int nDigits) {
+    uint64_t index = 0;
+    for (int i = 0; i < nDigits; ++i) {
+        uint64_t digit = inverse % base;
+        inverse /= base;
+        index = index * base + digit;
+    }
+    return index;
+}
 
 class Halton : public Sampler {
 public:
     Halton(const PropertyList& propList) {
         m_sampleCount = (size_t)propList.getInteger("sampleCount", 1);
-    }
 
-    virtual ~Halton() { }
+        pcg32 rng;
+        rng.seed(0,0);
+
+        m_digitPermutations = new std::vector<DigitPermutation>(PrimeTableSize);
+        for (int i = 0; i < PrimeTableSize; ++i)
+            (*m_digitPermutations)[i] = DigitPermutation(Primes[i], rng);
+    }
 
     std::unique_ptr<Sampler> clone() const {
         std::unique_ptr<Halton> cloned(new Halton());
         cloned->m_sampleCount = m_sampleCount;
+        cloned->m_digitPermutations = m_digitPermutations;
         return std::move(cloned);
     }
 
     void prepare(const ImageBlock& block, Vector2i &fullRes) {
-        m_random.seed(
-            block.getOffset().x(),
-            block.getOffset().y()
-        );
-        m_block_size = block.getSize().prod();
         m_sample_i = 0;
-
-        digitPermutations = new std::vector<DigitPermutation>(PrimeTableSize);
-        for (int i = 0; i < PrimeTableSize; ++i)
-            (*digitPermutations)[i] = DigitPermutation(Primes[i], m_random);
-
 
         for (int i = 0; i < 2; ++i) {
             int base = (i == 0) ? 2 : 3;
@@ -205,13 +219,11 @@ public:
 
     void generate() {
         m_sample_i++;
-        m_pixel_i = 0;
     }
 
     void advance(Point2i p) {
-
         haltonIndex = 0;
-        int sampleStride = baseScales[0] * baseScales[1] * m_block_size;
+        int sampleStride = baseScales[0] * baseScales[1];
         if (sampleStride > 1) {
             Point2i pm(mod(p[0], MaxHaltonResolution), mod(p[1], MaxHaltonResolution));
             for (int i = 0; i < 2; ++i) {
@@ -226,7 +238,6 @@ public:
 
         haltonIndex += m_sample_i * sampleStride;
         m_dim = 0;
-        m_pixel_i;
     }
 
     float next1D() {
@@ -252,22 +263,14 @@ protected:
 
 private:
     float sampleDimension(int dim) {
-        DigitPermutation perm = (*digitPermutations)[dim];
-        int a = haltonIndex;
-        int base = Primes[dim];
-        float invBase = 1.0f / base;
-        float invBaseM = 1;
-        uint64_t reversedDigits = 0;
-        int digitIndex = 0;
-        while (1 - (base - 1) * invBaseM < 1) {
-            uint64_t next = a / base;
-            int digitValue = a - next * base;
-            reversedDigits = reversedDigits * base + perm.permute(digitIndex, digitValue);
-            invBaseM *= invBase;
-            ++digitIndex;
-            a = next;
-        }
-        return std::min(invBaseM * reversedDigits, (float) 0x1.fffffep-1);
+        // pixel samples
+        if (dim == 0)
+            return radicalInverse(haltonIndex >> baseExponents[0], 2);
+        if (dim == 1)
+            return radicalInverse(haltonIndex / baseScales[1], 3);
+
+        //return radicalInverse(haltonIndex, Primes[dim]);
+        return scrambledRadicalInverse(haltonIndex, Primes[dim], (*m_digitPermutations)[dim]);
     }
 
     static uint64_t multiplicativeInverse(int64_t a, int64_t n) {
@@ -288,13 +291,10 @@ private:
         *y = xp - (d * yp);
     }
 
-    pcg32 m_random;
-    std::vector<DigitPermutation> *digitPermutations = nullptr;
+    std::vector<DigitPermutation> *m_digitPermutations = nullptr;
     static constexpr int MaxHaltonResolution = 128;
-    int m_block_size;
     int m_sample_i;
-    int m_pixel_i;
-    int haltonIndex;
+    uint64_t haltonIndex;
     int m_dim;
     Point2i baseScales, baseExponents;
     int multInverse[2];
