@@ -4,6 +4,7 @@
 #include <nori/object.h>
 #include <nori/shape.h>
 #include <nori/bvh.h>
+#include <nori/lightbvh.h>
 
 NORI_NAMESPACE_BEGIN
 
@@ -38,10 +39,15 @@ public:
         return m_bvh->getBoundingBox();
     }
 
+    const LightCone getLightCone() {
+        return m_lbvh->getLightCone();
+    }
+
 protected:
     int m_id;
     Shape *m_mesh = nullptr;
     BVH *m_bvh = nullptr;
+    LightBVH *m_lbvh = nullptr;
 };
 
 NORI_NAMESPACE_END

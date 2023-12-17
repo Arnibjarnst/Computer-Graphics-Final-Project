@@ -27,10 +27,12 @@ public:
             return Color3f(0.0f);
        
         // light emitted from intersection point
-        Color3f Le = its.mesh->isEmitter() ? its.mesh->getEmitter()->eval(EmitterQueryRecord(ray.o, its.p, its.shFrame.n)) : 0.0f;
+        Color3f Le = its.mesh->isEmitter() ? its.mesh->getEmitter()->eval(EmitterQueryRecord(ray.o, its.p, its.shFrame.n)) : Color3f(0.0f);
 
         // random light in scene
-        const Emitter* light = scene->getRandomEmitter(sampler->next1D());
+        LightBVHQueryRecord lqr(its.p, its.shFrame.n);
+        const Emitter* light = scene->getRandomEmitter(lqr);
+        //const Emitter* light = scene->getRandomEmitter(sampler->next1D());
         
         // radiance of a sampled point on light source
         EmitterQueryRecord q = EmitterQueryRecord(its.p);
@@ -54,7 +56,9 @@ public:
 
         // multiply light contriubtion by number of lights in scene to get the correct pdf
         // might overcompensate small lights ???
-        return Le + radiance * cos * scatter * scene->getLights().size();
+        //return Le + radiance * cos * scatter * scene->getLights().size();
+        //cout << lqr.pdf << endl;
+        return lqr.pdf > Epsilon ? Le + radiance * cos * scatter / lqr.pdf : Le;
     };
 
     std::string toString() const {

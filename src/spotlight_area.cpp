@@ -1,7 +1,7 @@
 /*
     This file is part of Nori, a simple educational ray tracer
 
-    Copyright (c) 2015 by Romain Prévost
+    Copyright (c) 2015 by Romain Prï¿½vost
 
     Nori is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License Version 3
@@ -95,6 +95,25 @@ public:
 
     virtual Color3f samplePhoton(Ray3f& ray, const Point2f& sample1, const Point2f& sample2) const override {
         throw NoriException("Not Implemented!");
+    }
+
+    // TODO if there's time, consider the fallof for theta_e instead of M_PI_2
+    LightCone getLightCone() const override {
+        if (!m_shape)
+            throw NoriException("There is no shape attached to this Area light!");
+        return m_shape->getLightCone();
+    }
+
+    BoundingBox3f getBoundingBox() const override {
+        if (!m_shape)
+            throw NoriException("There is no shape attached to this Area light!");
+        return m_shape->getBoundingBox();
+    }
+
+    float getPower() const override {
+        float inner_solid_angle = 2 * M_PI * (1 - m_cosTheta);
+        float outer_solid_angle = 2 * M_PI * (1 - m_cosThetaFalloff) - inner_solid_angle;
+        return (m_innerRadiance.maxCoeff() * inner_solid_angle + m_outerRadiance.maxCoeff() * outer_solid_angle) * getBoundingBox().getSurfaceArea();
     }
 
 

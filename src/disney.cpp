@@ -90,7 +90,7 @@ public:
         Vector3f wh = (bRec.wi + bRec.wo).normalized();
         float cos_theta_d = wh.dot(bRec.wo);
 
-        Color3f color = m_color->eval(bRec.uv); // linear rgb
+        Color3f color = m_color->eval(*bRec.its); // linear rgb
 
         Color3f cSpec0 = (1 - m_metallic) * 0.08f * m_specular + m_metallic * color;
 

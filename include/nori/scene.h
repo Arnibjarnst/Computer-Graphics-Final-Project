@@ -73,6 +73,14 @@ public:
         return m_emitters[index];
     }
 
+    const Emitter *getRandomEmitter(LightBVHQueryRecord &lRec) const {
+        return m_lbvh->sample(lRec, m_sampler);
+    }
+
+    const float getRandomEmitterPdf(const Emitter *e, LightBVHQueryRecord &lRec) const {
+        return m_lbvh->pdf(e, lRec);
+    }
+
     /**
      * \brief Intersect a ray against all triangles stored in the scene
      * and return detailed intersection information
@@ -157,6 +165,7 @@ private:
     Sampler *m_sampler = nullptr;
     Camera *m_camera = nullptr;
     BVH *m_bvh = nullptr;
+    LightBVH *m_lbvh = nullptr;
 
     std::vector<Emitter *> m_emitters;
 };
