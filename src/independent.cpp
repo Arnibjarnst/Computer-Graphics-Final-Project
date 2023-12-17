@@ -45,7 +45,7 @@ public:
         return std::move(cloned);
     }
 
-    void prepare(const ImageBlock &block) {
+    void prepare(const ImageBlock &block, Vector2i &fullRes) {
         m_random.seed(
             block.getOffset().x(),
             block.getOffset().y()
@@ -53,7 +53,7 @@ public:
     }
 
     void generate() { /* No-op for this sampler */ }
-    void advance()  { /* No-op for this sampler */ }
+    void advance(Point2i p)  { /* No-op for this sampler */ }
 
     float next1D() {
         return m_random.nextFloat();
