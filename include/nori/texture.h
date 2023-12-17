@@ -20,6 +20,7 @@
 #define __NORI_TEXTURE_H
 
 #include <nori/object.h>
+#include <nori/shape.h>
 
 NORI_NAMESPACE_BEGIN
 
@@ -38,7 +39,7 @@ public:
      * */
     virtual EClassType getClassType() const override { return ETexture; }
 
-    virtual T eval(const Point2f & uv) = 0;
+    virtual T eval(const Intersection& its) = 0;
 };
 
 NORI_NAMESPACE_END

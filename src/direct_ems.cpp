@@ -51,8 +51,7 @@ public:
             its.shFrame.toLocal(q.wi),
             its.shFrame.toLocal(-ray.d),
             ESolidAngle);
-        bsdfQuery.uv = its.uv;
-        bsdfQuery.p = its.p;
+        bsdfQuery.its = &its;
         Color3f scatter = bsdf->eval(bsdfQuery);
 
         // multiply light contriubtion by number of lights in scene to get the correct pdf

@@ -20,6 +20,7 @@
 #include <nori/bsdf.h>
 #include <nori/emitter.h>
 #include <nori/warp.h>
+#include <Eigen/Geometry>
 
 NORI_NAMESPACE_BEGIN
 
@@ -59,11 +60,20 @@ public:
         its.p = ray(its.t);
         Vector3f dir = (its.p - m_position).normalized();
         its.geoFrame = Frame(dir);
-        its.shFrame = Frame(dir);
         its.uv = Point2f(
             std::atan2(dir.y(), dir.x()) * INV_TWOPI + 0.5,
             std::asin(dir.z()) * INV_PI + 0.5
         );
+
+        // based of Mitsuba3
+        its.dpdu = Vector3f(-dir.y(), dir.x(), 0.0f) * M_PI * 2;
+        float rd = its.dpdu.norm();
+        float invRd = 1 / rd;
+        float cos_phi = dir.x() * invRd;
+        float sin_phi = dir.y() * invRd;
+        its.dpdv = Vector3f(dir.z() * cos_phi, dir.z() * sin_phi, -rd) * M_PI;
+        Vector3f s = (its.dpdu + dir * dir.dot(its.dpdu)).normalized();
+        its.shFrame = Frame(s, dir.cross(s), dir);
     }
 
     virtual void sampleSurface(ShapeQueryRecord & sRec, const Point2f & sample) const override {

@@ -28,9 +28,9 @@ public:
 
     virtual std::string toString() const override;
 
-    virtual T eval(const Point2f & uv) override {
-        int i = static_cast<int>(std::floor(uv.x() / m_scale.x() - m_delta.x()));
-        int j = static_cast<int>(std::floor(uv.y() / m_scale.y() - m_delta.y()));
+    virtual T eval(const Intersection& its) override {
+        int i = static_cast<int>(std::floor(its.uv.x() / m_scale.x() - m_delta.x()));
+        int j = static_cast<int>(std::floor(its.uv.y() / m_scale.y() - m_delta.y()));
         if ((i + j) % 2) return m_value2;
 	    return m_value1;
     }

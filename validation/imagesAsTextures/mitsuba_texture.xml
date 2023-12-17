@@ -46,7 +46,7 @@
 	</shape>
 
 	<shape type="obj">
-		<string name="filename" value="../../assets/small_rock/stone.obj"/>
+		<string name="filename" value="../meshes/stone.obj"/>
 
 		<transform name="to_world">
 			<scale value="0.02,0.02,0.02"/>
@@ -55,7 +55,7 @@
 
 		<bsdf type="diffuse" id="bt">
 			<texture type="bitmap" name="reflectance">
-				<string name="filename" value="../../assets/small_rock/texture.jpg"/>
+				<string name="filename" value="../meshes/texture.jpg"/>
 				<string name="wrap_mode" value="clamp"/>
 			</texture>
 		</bsdf>

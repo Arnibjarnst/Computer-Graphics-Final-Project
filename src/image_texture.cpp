@@ -18,10 +18,29 @@
 
 #include <nori/object.h>
 #include <nori/texture.h>
+#include <nori/shape.h>
 #include <stb_image.h>
 #include <tbb/tbb.h>
 
 NORI_NAMESPACE_BEGIN
+
+bool DEBUG = false;
+Color3f DEBUG_COLORS[14] = {
+    Color3f(47, 79, 79) / 255.0f,
+    Color3f(34, 139, 34) / 255.0f,
+    Color3f(25, 25, 112) / 255.0f,
+    Color3f(139, 0, 0) / 255.0f,
+    Color3f(255, 140, 0) / 255.0f,
+    Color3f(222, 184, 135) / 255.0f,
+    Color3f(0, 255, 0) / 255.0f,
+    Color3f(0, 191, 255) / 255.0f,
+    Color3f(0, 0, 255) / 255.0f,
+    Color3f(255, 0, 255) / 255.0f,
+    Color3f(255, 255, 84) / 255.0f,
+    Color3f(221, 160, 221) / 255.0f,
+    Color3f(255, 20, 147) / 255.0f,
+    Color3f(127, 255, 212) / 255.0f
+};
 
 enum class WrapMethod {
     Repeat,
@@ -55,6 +74,10 @@ public:
             }
         }
 
+        std::string wrap = props.getString("wrap", "repeat");
+        if (wrap == "repeat") m_wrap = WrapMethod::Repeat;
+        else if (wrap == "clamp") m_wrap = WrapMethod::Clamp;
+
         m_delta = props.getPoint2("delta", Point2f(0));
         m_scale = props.getVector2("scale", Vector2f(1));
     }
@@ -72,8 +95,9 @@ public:
         );
     }
 
-    virtual Color3f eval(const Point2f& uv) override {
-        Point2i ij = uvmap(uv);
+    virtual Color3f eval(const Intersection& its) override {
+        const Point2f uv_scaled = Point2f(its.uv.x() * m_scale.x() + m_delta.x(), its.uv.y() * m_scale.y() + m_delta.y());
+        Point2i ij = uvmap(uv_scaled);
         return m_map[ij.y() * m_width + ij.x()];
     }
 private:
@@ -85,9 +109,10 @@ private:
             );
         if (m_wrap == WrapMethod::Repeat)
             return Point2i(
-                mod(int(uv.x() * m_width), m_width),
-                mod(int(uv.y() * m_height), m_height)
+                mod(int(floor(uv.x() * m_width)), m_width),
+                mod(int(floor(uv.y() * m_height)), m_height)
             );
+        return Point2i(0, 0);
     }
 protected:
     Point2f m_delta;
@@ -95,7 +120,7 @@ protected:
     Color3f* m_map;
     int m_width;
     int m_height;
-    const WrapMethod m_wrap = WrapMethod::Clamp;
+    WrapMethod m_wrap;
 };
 
 
@@ -104,19 +129,11 @@ struct ResampleWeight {
     float weight[4];
 };
 
-
 class UVArray {
 public:
     UVArray(int uRes, int vRes, const Color3f* buf = nullptr) : uRes(uRes), vRes(vRes) {
         buffer = new Color3f[uRes * vRes];
         if (buf) for (int i = 0; i < uRes * vRes; i++) buffer[i] = buf[i];
-        //if (buf) {
-        //    for (int i = 0; i < uRes; i++) {
-        //        for (int j = 0; j < vRes; j++) {
-        //            (*this)(i, j) = buf[j * uRes + i];
-        //        }
-        //    }
-        //}
     }
 
     int uSize() const {
@@ -139,7 +156,7 @@ private:
 
 class MipMap {
 public:
-    MipMap(const Color3f *img, const Point2i &res, WrapMethod wrap) : res(res), wrap(wrap) {
+    MipMap(const Color3f *img, Point2i &res, WrapMethod wrap) : res(res), wrap(wrap) {
         Point2i newRes((1 << int(ceil(log2(res.x())))), (1 << int(ceil(log2(res.y())))));
 
         std::unique_ptr<Color3f[]> resampledImage = nullptr;
@@ -147,10 +164,11 @@ public:
         if (newRes.x() != res.x() || newRes.y() != res.y()) {
             std::unique_ptr<ResampleWeight[]> sWeights = resampleWeights(res.x(), newRes.x());
 
+            resampledImage.reset(new Color3f[newRes.x() * newRes.y()]);
+
             tbb::parallel_for(
                 tbb::blocked_range<uint32_t>(0u, res.y(), 16), // what is grain size
                 [&](const tbb::blocked_range<uint32_t>& range) {
-                    std::cout << range.begin() << '\n';
                     for (uint32_t t = range.begin(); t != range.end(); ++t) {
                         for (int s = 0; s < newRes.x(); ++s) {
                             resampledImage[t * newRes.x() + s] = 0.f;
@@ -160,8 +178,7 @@ public:
                                     origS = mod(origS, res.x());
                                 else if (wrap == WrapMethod::Clamp)
                                     origS = clamp(origS, 0, res.x() - 1);
-                                if (origS >= 0 && origS < res.x())
-                                    resampledImage[t * newRes.x() + s] += sWeights[s].weight[j] * img[t * res.x() + origS];
+                                resampledImage[t * newRes.x() + s] += sWeights[s].weight[j] * img[t * res.x() + origS];
                             }
                         }
                     }
@@ -170,10 +187,30 @@ public:
 
             std::unique_ptr<ResampleWeight[]> tWeights = resampleWeights(res.y(), newRes.y());
 
-            std::vector<Color3f*> resampleBufs;
-            //int nThreads = MaxThreadIndex();
-            //for (int i = 0; i < nThreads; ++i)
-            //    resampleBufs.push_back(new Color3f[newRes.y()]);
+            tbb::parallel_for(
+                tbb::blocked_range<uint32_t>(0u, newRes.x(), 16), // what is grain size
+                [&](const tbb::blocked_range<uint32_t>& range) {
+                    Color3f* temp = new Color3f[newRes.y()];
+                    for (uint32_t s = range.begin(); s != range.end(); ++s) {
+                        for (int t = 0; t < newRes.y(); ++t) {
+                            temp[t] = Color3f(0.0f);
+                            for (int j = 0; j < 4; ++j) {
+                                int offset = tWeights[t].firstTexel + j;
+                                if (wrap == WrapMethod::Repeat)
+                                    offset = mod(offset, res.y());
+                                else if (wrap == WrapMethod::Clamp)
+                                    offset = clamp(offset, 0, res.y() - 1);
+                                temp[t] += tWeights[t].weight[j] * resampledImage[offset * newRes.x() + s];
+                            }
+                        }
+                        for (int t = 0; t < newRes.y(); ++t)
+                            resampledImage[t * newRes.x() + s] = temp[t].cwiseAbs();
+                    }
+                    delete[] temp;
+                }
+            );
+
+            res = newRes;
         }
 
         int nLevels = 1 + log2(std::max(res.x(), res.y()));
@@ -207,20 +244,17 @@ public:
             );
         }
     }
-
-    Color3f Lookup(Point2f uv, Vector2f duvdx, Vector2f duvdy) const {
+    Color3f Lookup(const Point2f &uv, const Vector2f &duvdx, const Vector2f& duvdy) const {
         float w = std::max(
-            std::max(std::abs(duvdx.x()), std::abs(duvdx.y())),
-            std::max(std::abs(duvdy.x()), std::abs(duvdy.y()))
+            std::max(std::abs(duvdx[0]), std::abs(duvdx[1])),
+            std::max(std::abs(duvdy[0]), std::abs(duvdy[1]))
         );
-
-        std::cout << "pyramid size " << pyramid.size() << " " << pyramid.max_size() << '\n';
-
-        return 0.0f;
 
         float level = pyramid.size() - 1 + log2(std::max(w, float(1e-8)));
 
-        std::cout << "pyramid size " << pyramid.size() << '\n';
+        if (DEBUG) {
+            return DEBUG_COLORS[clamp(int(level), 0, pyramid.size())];
+        }
 
         if (level < 0)
             return triangle(0, uv);
@@ -237,7 +271,6 @@ public:
 
 private:
     std::unique_ptr<ResampleWeight[]> resampleWeights(int oldRes, int newRes) {
-        assert(newRes >= oldRes);
         std::unique_ptr<ResampleWeight[]> weights(new ResampleWeight[newRes]);
         float filterwidth = 2.f;
         for (int i = 0; i < newRes; ++i) {
@@ -264,13 +297,16 @@ private:
     Color3f eval(int level, int i, int j) const {
         UVArray &l = *pyramid[level];
         if (wrap == WrapMethod::Clamp) {
-            i = clamp(i, 0, l.uSize());
-            j = clamp(j, 0, l.vSize());
+            i = clamp(i, 0, l.uSize()-1);
+            j = clamp(j, 0, l.vSize()-1);
         }
         else if (wrap == WrapMethod::Repeat) {
             i = mod(i, l.uSize());
             j = mod(j, l.vSize());
         }
+        else
+            throw NoriException("unknown wrap method");
+
         return l(i, j);
     }
 
@@ -313,10 +349,22 @@ public:
             }
         }
 
-        mipmap = &MipMap(m_map, Point2i(m_width, m_height), WrapMethod::Clamp);
+        std::string wrap = props.getString("wrap", "repeat");
+        if (wrap == "repeat") m_wrap = WrapMethod::Repeat;
+        else if (wrap == "clamp") m_wrap = WrapMethod::Clamp;
 
-        m_delta = props.getPoint2("delta", Point2f(0));
-        m_scale = props.getVector2("scale", Vector2f(1));
+        mipmap = new MipMap(m_map, Point2i(m_width, m_height), m_wrap);
+
+        m_delta = props.getPoint2("delta", Point2f(0.0f));
+        m_scale = props.getVector2("scale", Vector2f(1.0f));
+    }
+
+    virtual Color3f eval(const Intersection &its) override {
+        const Point2f uv_scaled = Point2f(its.uv.x() * m_scale.x(), its.uv.y() * m_scale.y()) + m_delta;
+        const Vector2f duvdx = Vector2f(its.dudx * m_scale.x(), its.dvdx * m_scale.y());
+        const Vector2f duvdy = Vector2f(its.dudy * m_scale.x(), its.dvdy * m_scale.y());
+
+        return mipmap->Lookup(uv_scaled, duvdx, duvdy);
     }
 
     virtual std::string toString() const {
@@ -331,30 +379,13 @@ public:
             m_scale.toString()
         );
     }
-
-    virtual Color3f eval(const Point2f& uv) override {
-        return mipmap->Lookup(uv, 1, 1);
-    }
-private:
-    Point2i uvmap(const Point2f& uv) const {
-        if (m_wrap == WrapMethod::Clamp)
-            return Point2i(
-                clamp(int(uv.x() * m_width), 0, m_width - 1),
-                clamp(int(uv.y() * m_height), 0, m_height - 1)
-            );
-        if (m_wrap == WrapMethod::Repeat)
-            return Point2i(
-                mod(int(uv.x() * m_width), m_width),
-                mod(int(uv.y() * m_height), m_height)
-            );
-    }
 protected:
     Point2f m_delta;
     Vector2f m_scale;
     const MipMap* mipmap;
     int m_width;
     int m_height;
-    const WrapMethod m_wrap = WrapMethod::Clamp;
+    WrapMethod m_wrap;
 };
 
 NORI_REGISTER_CLASS(ImageTextureSimple, "image_texture_simple")

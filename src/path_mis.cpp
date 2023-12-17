@@ -9,86 +9,79 @@ class PathMISIntegrator : public Integrator {
 public:
     PathMISIntegrator(const PropertyList &props) {}
 
-    Color3f Li(const Scene *scene, Sampler *sampler, const Ray3f &ray0) const {
-        const long START_ROULETTE = -1;
-        const auto emitters_count = scene->getLights().size();
+    PathMis(const PropertyList& props) {}
+    /**
+     * \brief Sample the incident radiance along a ray
+     *
+     * \param scene
+     *    A pointer to the underlying scene
+     * \param sampler
+     *    A pointer to a sample generator
+     * \param ray
+     *    The ray in question
+     * \return
+     *    A (usually) unbiased estimate of the radiance in this direction
+     */
+    virtual Color3f Li(const Scene* scene, Sampler* sampler, const Ray3f& ray0) const override {
 
-        Color3f li = Color3f(0.0f);
-        Color3f t = Color3f(1.0f);
-        Ray3f ray = ray0;
-
-        float w_ems = 0.0f;
-        float w_mat = 1.0f;
-
-        for (long i = 0; ; i++) {
-            // Find ray intersection
-            Intersection its;
-            if (!scene->rayIntersect(ray, its)) {
-                break;
-            }
-            // If is an emitter, add contribution
+        Color3f L = 0.0f;
+        Color3f t = 1.0f;
+        Ray3f ray(ray0);
+        Intersection its;
+        float bsdfPdf = -1.0; // this means that we have discrete sampling (so infinty)
+        while (scene->rayIntersect(ray, its)) {
+            // light emitted from intersection point
             if (its.mesh->isEmitter()) {
-                EmitterQueryRecord eqr1 = EmitterQueryRecord(ray.o, its.p, its.shFrame.n);
-                li += w_mat * t * its.mesh->getEmitter()->eval(eqr1);
-            }
-            // Russian roulette
-            float success_prob = std::min(0.99f, t.maxCoeff());
-            if (i > START_ROULETTE && sampler->next1D() > success_prob) break;
-            if (i > START_ROULETTE) t /= success_prob;
-
-            // Sample BSDF
-            const BSDF *b1 = its.mesh->getBSDF();
-            BSDFQueryRecord bqr1 = BSDFQueryRecord(its.shFrame.toLocal(-ray.d));
-            bqr1.uv = its.uv;
-            bqr1.p = its.p;
-            const Color3f sample_mat_mat = b1->sample(bqr1, sampler->next2D());
-            
-            // Add direct illumination and prepare next w_mat
-            if (bqr1.measure == ESolidAngle){
-                // ems
-                // sample an emitter
-                LightBVHQueryRecord lqr(its.p, its.shFrame.n);
-                const Emitter *e = scene->getRandomEmitter(lqr);
-                EmitterQueryRecord eqr2 = EmitterQueryRecord(its.p);
-                const Color3f sample_ems_ems = e->sample(eqr2, sampler->next2D());
-
-                const Vector3f wo = its.shFrame.toLocal(-ray.d);
-                const Vector3f wi = its.shFrame.toLocal(eqr2.shadowRay.d);
-
-                if (!scene->rayIntersect(eqr2.shadowRay)) {
-                    //sample bsdf
-                    BSDFQueryRecord bqr2 = BSDFQueryRecord(wo, wi, ESolidAngle);
-                    bqr2.uv = its.uv;
-                    bqr2.p = its.p;
-                    const Color3f sample_mat_ems = b1->eval(bqr2);
-                    // compute w_ems
-                    const float pdf_ems_ems = e->pdf(eqr2) * lqr.pdf;
-                    const float pdf_mat_ems = b1->pdf(bqr2);
-                    if (pdf_ems_ems + pdf_mat_ems > Epsilon) {
-                        w_ems = pdf_ems_ems / (pdf_ems_ems + pdf_mat_ems);
-                        // add direct illumination
-                        li += w_ems * t * sample_mat_ems * sample_ems_ems * Frame::cosTheta(wi) / lqr.pdf;
-                    }
+                EmitterQueryRecord emitterEval(ray.o, its.p, its.shFrame.n);
+                const Emitter* emitter = its.mesh->getEmitter();
+                if (bsdfPdf < 0) L += t * emitter->eval(emitterEval); // discrete sampling so wMat == 1
+                else {
+                    const float wMat = bsdfPdf / (bsdfPdf + emitter->pdf(emitterEval) / scene->getLights().size());
+                    L += wMat * t * emitter->eval(emitterEval);
                 }
-                //mats
-                Intersection sec_its;
-                Ray3f sec_ray = Ray3f(its.p, its.shFrame.toWorld(bqr1.wo));
-                if (scene->rayIntersect(sec_ray, sec_its) && sec_its.mesh->isEmitter()){
-                    EmitterQueryRecord eqr3 = EmitterQueryRecord(sec_ray.o, sec_its.p, sec_its.shFrame.n); // eqr3 == (next it) eqr1
-                    LightBVHQueryRecord lqrmat(its.p, its.shFrame.n);
-                    const Emitter *e = sec_its.mesh->getEmitter();
-                    const float pdf_ems_mat = e->pdf(eqr3) * scene->getRandomEmitterPdf(e, lqrmat);
-                    const float pdf_mat_mat = b1->pdf(bqr1);
-                    w_mat = pdf_mat_mat / (pdf_mat_mat + pdf_ems_mat);
+            }
+
+            const float successProbability = std::min(t.maxCoeff(), 0.99f);
+            if (sampler->next1D() > successProbability) break;
+            t /= successProbability;
+
+            const BSDF* bsdf = its.mesh->getBSDF();
+            const Vector3f wi = its.shFrame.toLocal(-ray.d);
+            BSDFQueryRecord bsdfQuery = BSDFQueryRecord(wi);
+            bsdfQuery.its = &its;
+
+            Color3f bsdfValue = bsdf->sample(bsdfQuery, sampler->next2D());
+
+            if (bsdfQuery.measure == ESolidAngle) { // If measure is discrete then wEm == 0
+
+                // random light in scene
+                const Emitter* light = scene->getRandomEmitter(sampler->next1D());
+
+                // radiance of a sampled point on light source
+                EmitterQueryRecord lightQuery = EmitterQueryRecord(its.p);
+                const Color3f radiance = light->sample(lightQuery, sampler->next2D());
+
+                // if light is visible
+                if (!scene->rayIntersect(lightQuery.shadowRay) && lightQuery.pdf > 0) {
+                    Vector3f wo = its.shFrame.toLocal(lightQuery.wi);
+                    BSDFQueryRecord bsdfEvalQuery = BSDFQueryRecord(
+                        wi,
+                        wo,
+                        ESolidAngle);
+                    bsdfEvalQuery.its = &its;
+                    Color3f bsdfValueToLight = bsdf->eval(bsdfEvalQuery);
+
+                    const float wEm = lightQuery.pdf / (lightQuery.pdf / scene->getLights().size() + bsdf->pdf(bsdfEvalQuery));
+                    L += wEm * t * std::abs(wo.z()) * bsdfValueToLight * radiance;
                 }
             } else {
                 w_ems = 0.0f;
                 w_mat = 1.0f;
             }
 
-            // Prepare next iteration
-            ray = Ray3f(its.p, its.shFrame.toWorld(bqr1.wo));
-            t *= sample_mat_mat;
+            ray = Ray3f(its.p, its.shFrame.toWorld(bsdfQuery.wo));
+
+            t *= bsdfValue;
         }
         return li;
     }

@@ -134,10 +134,25 @@ void Mesh::setHitInformation(uint32_t index, const Ray3f &ray, Intersection & it
     its.p = bary.x() * p0 + bary.y() * p1 + bary.z() * p2;
 
     /* Compute proper texture coordinates if provided by the mesh */
-    if (m_UV.size() > 0)
-        its.uv = bary.x() * m_UV.col(idx0) +
-                 bary.y() * m_UV.col(idx1) +
-                 bary.z() * m_UV.col(idx2);
+    if (m_UV.size() > 0) {
+        Point2f uv0 = m_UV.col(idx0);
+        Point2f uv1 = m_UV.col(idx1);
+        Point2f uv2 = m_UV.col(idx2);
+        Vector2f duv02 = uv0 - uv2, duv12 = uv1 - uv2;
+        Vector3f dp02 = p0 - p2, dp12 = p1 - p2;
+        float det = duv02[0] * duv12[1] - duv02[1] * duv12[0];
+        if (det == 0) {
+            // should this be (p1-p0).cross(p2-p0) like geoFrame
+            // or be in the other direction
+            coordinateSystem((p2 - p0).cross(p1 - p0).normalized(), its.dpdu, its.dpdv);
+        }
+        else {
+            float invDet = 1 / det;
+            its.dpdu = invDet * (duv12[1] * dp02 - duv02[1] * dp12);
+            its.dpdv = invDet * (-duv12[0] * dp02 + duv02[0] * dp12);
+        }
+        its.uv = bary.x() * uv0 + bary.y() * uv1 + bary.z() * uv2;
+    }
 
     /* Compute the geometry frame */
     its.geoFrame = Frame((p1-p0).cross(p2-p0).normalized());
@@ -148,14 +163,17 @@ void Mesh::setHitInformation(uint32_t index, const Ray3f &ray, Intersection & it
            tangents that are continuous across the surface. That
            means that this code will need to be modified to be able
            use anisotropic BRDFs, which need tangent continuity */
-
-        its.shFrame = Frame(
-                (bary.x() * m_N.col(idx0) +
-                 bary.y() * m_N.col(idx1) +
-                 bary.z() * m_N.col(idx2)).normalized());
+        Normal3f n = (
+            bary.x() * m_N.col(idx0) +
+            bary.y() * m_N.col(idx1) +
+            bary.z() * m_N.col(idx2)).normalized();
+        Vector3f s = (its.dpdu + n * n.dot(its.dpdu)).normalized();
+        its.shFrame = Frame(s, n.cross(s), n);
     } else {
         its.shFrame = its.geoFrame;
     }
+
+    its.computeDifferentials(ray);
 }
 
 BoundingBox3f Mesh::getBoundingBox(uint32_t index) const {

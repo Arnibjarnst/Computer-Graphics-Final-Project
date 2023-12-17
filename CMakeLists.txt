@@ -115,6 +115,7 @@ set(NORI_SOURCE_FILES
   src/spotlight.cpp
   src/spotlight_area.cpp
   src/image_texture.cpp
+  src/disney.cpp
 )
 
 add_executable(nori ${NORI_SOURCE_FILES})

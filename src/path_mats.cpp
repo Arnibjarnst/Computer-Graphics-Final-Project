@@ -38,8 +38,7 @@ public:
 
             const BSDF* bsdf = its.mesh->getBSDF();
             BSDFQueryRecord bsdfQuery = BSDFQueryRecord(its.shFrame.toLocal(-recursive_ray.d));
-            bsdfQuery.uv = its.uv;
-            bsdfQuery.p = its.p;
+            bsdfQuery.its = &its;
 
             t *= bsdf->sample(bsdfQuery, sampler->next2D());
 
