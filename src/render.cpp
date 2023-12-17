@@ -79,10 +79,12 @@ static void renderBlock(const Scene *scene, Sampler *sampler, ImageBlock &block)
 
     /* Clear the block contents */
     block.clear();
+    sampler->generate();
 
     /* For each pixel and pixel sample sample */
     for (int y=0; y<size.y(); ++y) {
         for (int x=0; x<size.x(); ++x) {
+            sampler->advance(Point2i(x + offset.x(), y + offset.y()));
             Point2f pixelSample = Point2f((float) (x + offset.x()), (float) (y + offset.y())) + sampler->next2D();
             //Point2f pixelSample = Point2f((float)(x + offset.x()) + 0.5f, (float)(y + offset.y()) + 0.5f); // used for comparing aliasing
             Point2f apertureSample = sampler->next2D();
@@ -170,7 +172,7 @@ void RenderThread::renderScene(const std::string & filename) {
                         auto blockId = block.getBlockId();
                         if(k == 0) { // Initialize the sampler for the first sample
                             std::unique_ptr<Sampler> sampler(m_scene->getSampler()->clone());
-                            sampler->prepare(block);
+                            sampler->prepare(block, outputSize);
                             samplers.at(blockId) = std::move(sampler);
                         }
 

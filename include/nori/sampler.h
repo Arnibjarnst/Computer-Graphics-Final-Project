@@ -76,7 +76,7 @@ public:
      * initialize the sampler so that repeated program runs
      * always create the same image.
      */
-    virtual void prepare(const ImageBlock &block) = 0;
+    virtual void prepare(const ImageBlock &block, Vector2i &fullRes) = 0;
 
     /**
      * \brief Prepare to generate new samples
@@ -87,7 +87,7 @@ public:
     virtual void generate() = 0;
 
     /// Advance to the next sample
-    virtual void advance() = 0;
+    virtual void advance(Point2i p) = 0;
 
     /// Retrieve the next component value from the current sample
     virtual float next1D() = 0;
