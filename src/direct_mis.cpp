@@ -56,7 +56,7 @@ public:
 
                 const float wEm = (lightQuery.pdf * lqr.pdf) / (lightQuery.pdf * lqr.pdf + bsdf->pdf(bsdfEvalQuery));
 
-                Lem = lqr.pdf > Epsilon ? wEm * radiance * cos * emitterScatter : Color3f(0.f);
+                Lem = lqr.pdf > Epsilon ? wEm * radiance * cos * emitterScatter / lqr.pdf: Color3f(0.f);
             }
         }
 
