@@ -43,6 +43,11 @@ struct Intersection {
     float t;
     /// UV coordinates, if any
     Point2f uv;
+
+    // UV gradients if using differential rays
+    Vector3f dpdu, dpdv, dpdx, dpdy;
+    float dudx, dvdx, dudy, dvdy;
+
     /// Shading frame (based on the shading normal)
     Frame shFrame;
     /// Geometric frame (based on the true geometry)
@@ -61,6 +66,55 @@ struct Intersection {
     /// Transform a direction vector from local to world coordinates
     Vector3f toWorld(const Vector3f &d) const {
         return shFrame.toWorld(d);
+    }
+
+    void computeDifferentials(const Ray3f &ray) {
+        if (ray.isDifferential) {
+            float d = shFrame.n.dot(p);
+            float tx = (d - shFrame.n.dot(ray.ox)) / shFrame.n.dot(ray.dx);
+            if (std::isinf(tx) || std::isnan(tx)) goto fail;
+            Point3f px = ray.ox + tx * ray.dx;
+            float ty = (d - shFrame.n.dot(ray.oy)) / shFrame.n.dot(ray.dy);
+            if (std::isinf(ty) || std::isnan(ty)) goto fail;
+            Point3f py = ray.oy + ty * ray.dy;
+            dpdx = px - p;
+            dpdy = py - p;
+
+            int dim[2];
+            if (std::abs(shFrame.n[0]) > std::abs(shFrame.n[1]) && std::abs(shFrame.n[0]) > std::abs(shFrame.n[2])) {
+                dim[0] = 1;
+                dim[1] = 2;
+            }
+            else if (std::abs(shFrame.n[1]) > std::abs(shFrame.n[2])) {
+                dim[0] = 0;
+                dim[1] = 2;
+            }
+            else {
+                dim[0] = 0;
+                dim[1] = 1;
+            }
+
+            float A[2][2] = { {dpdu[dim[0]], dpdv[dim[0]]},
+                             {dpdu[dim[1]], dpdv[dim[1]]} };
+            float Bx[2] = { px[dim[0]] - p[dim[0]], px[dim[1]] - p[dim[1]] };
+            float By[2] = { py[dim[0]] - p[dim[0]], py[dim[1]] - p[dim[1]] };
+
+            float det = A[0][0] * A[1][1] - A[0][1] * A[1][0];
+            if (std::abs(det) < Epsilon) dudx = dvdx = dudy = dvdy = 0;
+            else {
+                float invDet = 1 / det;
+                dudx = (A[1][1] * Bx[0] - A[0][1] * Bx[1]) * invDet;
+                dvdx = (A[0][0] * Bx[1] - A[1][0] * Bx[0]) * invDet;
+                dudy = (A[1][1] * By[0] - A[0][1] * By[1]) * invDet;
+                dvdy = (A[0][0] * By[1] - A[1][0] * By[0]) * invDet;
+            }
+        }
+        else {
+        fail:
+            dudx = dvdx = 0;
+            dudy = dvdy = 0;
+            dpdx = dpdy = Vector3f(0, 0, 0);
+        }
     }
 
     /// Return a human-readable summary of the intersection record

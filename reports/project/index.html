@@ -67,12 +67,60 @@ As we can see this gives smoother shadows.
 
 ### Low Discrepancy Sampling
 ### Mip-Mapping for texture
+
+https://blog.yiningkarlli.com/2018/10/bidirectional-mipmap.html
+
+<div class="twentytwenty-container">
+    <img src="../../validation/mipmap/nori_mipmap_rand_on.png" alt="mipmap" class="img-responsive">
+    <img src="../../validation/mipmap/nori_normal_texture_rand_on.png" alt="simple" class="img-responsive">
+</div>
+
+<div class="twentytwenty-container">
+    <img src="../../validation/mipmap/nori_mipmap_rand_off.png" alt="mipmap" class="img-responsive">
+    <img src="../../validation/mipmap/nori_normal_texture_rand_off.png" alt="simple" class="img-responsive">
+</div>
+
+<div class="twentytwenty-container">
+    <img src="../../validation/mipmap/nori_mipmap_level[3-10].png" alt="mipmap levels" class="img-responsive">
+</div>
+
 ### Disney BSDF
 
 eval function: https://github.com/wdas/brdf/blob/main/src/brdfs/disney.brdf#L119
 
-sampling weights:
-https://schuttejoe.github.io/post/disneybsdf/
+sampling weights: https://cgl.ethz.ch/teaching/cg23/www-nori/example_reports/mylonopoulos_sancho/report.html
+
+**Roughness**
+<div class="twentytwenty-container">
+    <img src="../../validation/disney/nori_roughness.png" alt="Nori" class="img-responsive">
+    <img src="../../validation/disney/mitsuba_disney_roughness.png" alt="Mitsuba" class="img-responsive">
+</div>
+
+**Specular**
+<div class="twentytwenty-container">
+    <img src="../../validation/disney/nori_specular.png" alt="Nori" class="img-responsive">
+    <img src="../../validation/disney/mitsuba_disney_specular.png" alt="Mitsuba" class="img-responsive">
+</div>
+
+**Metallic**
+<div class="twentytwenty-container">
+    <img src="../../validation/disney/nori_metallic.png" alt="Nori" class="img-responsive">
+    <img src="../../validation/disney/mitsuba_disney_metallic.png" alt="Mitsuba" class="img-responsive">
+</div>
+
+**Anisotropic**
+<div class="twentytwenty-container">
+    <img src="../../validation/disney/nori_anisotropic.png" alt="Nori" class="img-responsive">
+    <img src="../../validation/disney/mitsuba_disney_anisotropic.png" alt="Mitsuba" class="img-responsive">
+</div>
+
+**Subsurface**
+<div class="twentytwenty-container">
+    <img src="../../validation/disney/nori_subsurface.png" alt="Nori" class="img-responsive">
+    <img src="../../validation/disney/mitsuba_disney_flatness.png" alt="Mitsuba" class="img-responsive">
+</div>
+
+
 
 ### Homogeneous Volumetric Participating Media
 

@@ -45,8 +45,7 @@ public:
                     its.shFrame.toLocal(q.wi),
                     its.shFrame.toLocal(-ray.d),
                     ESolidAngle);
-                bsdfQuery.uv = its.uv;
-                bsdfQuery.p = its.p;
+                bsdfQuery.its = &its;
                 Color3f color = bsdf->eval(bsdfQuery);
                 totalColor += power * cos * color;
             }

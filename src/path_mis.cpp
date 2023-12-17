@@ -21,17 +21,17 @@ public:
      * \return
      *    A (usually) unbiased estimate of the radiance in this direction
      */
-    virtual Color3f Li(const Scene* scene, Sampler* sampler, const Ray3f& ray) const override {
+    virtual Color3f Li(const Scene* scene, Sampler* sampler, const Ray3f& ray0) const override {
 
         Color3f L = 0.0f;
         Color3f t = 1.0f;
-        Ray3f recursive_ray(ray);
+        Ray3f ray(ray0);
         Intersection its;
         float bsdfPdf = -1.0; // this means that we have discrete sampling (so infinty)
-        while (scene->rayIntersect(recursive_ray, its)) {
+        while (scene->rayIntersect(ray, its)) {
             // light emitted from intersection point
             if (its.mesh->isEmitter()) {
-                EmitterQueryRecord emitterEval(recursive_ray.o, its.p, its.shFrame.n);
+                EmitterQueryRecord emitterEval(ray.o, its.p, its.shFrame.n);
                 const Emitter* emitter = its.mesh->getEmitter();
                 if (bsdfPdf < 0) L += t * emitter->eval(emitterEval); // discrete sampling so wMat == 1
                 else {
@@ -45,10 +45,9 @@ public:
             t /= successProbability;
 
             const BSDF* bsdf = its.mesh->getBSDF();
-            const Vector3f wi = its.shFrame.toLocal(-recursive_ray.d);
+            const Vector3f wi = its.shFrame.toLocal(-ray.d);
             BSDFQueryRecord bsdfQuery = BSDFQueryRecord(wi);
-            bsdfQuery.uv = its.uv;
-            bsdfQuery.p = its.p;
+            bsdfQuery.its = &its;
 
             Color3f bsdfValue = bsdf->sample(bsdfQuery, sampler->next2D());
 
@@ -68,8 +67,7 @@ public:
                         wi,
                         wo,
                         ESolidAngle);
-                    bsdfEvalQuery.uv = its.uv;
-                    bsdfEvalQuery.p = its.p;
+                    bsdfEvalQuery.its = &its;
                     Color3f bsdfValueToLight = bsdf->eval(bsdfEvalQuery);
 
                     const float wEm = lightQuery.pdf / (lightQuery.pdf / scene->getLights().size() + bsdf->pdf(bsdfEvalQuery));
@@ -81,7 +79,7 @@ public:
                 bsdfPdf = -1.0f; // infinity
             }
 
-            recursive_ray = Ray3f(its.p, its.shFrame.toWorld(bsdfQuery.wo));
+            ray = Ray3f(its.p, its.shFrame.toWorld(bsdfQuery.wo));
 
             t *= bsdfValue;
         }

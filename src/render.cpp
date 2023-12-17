@@ -86,6 +86,7 @@ static void renderBlock(const Scene *scene, Sampler *sampler, ImageBlock &block)
         for (int x=0; x<size.x(); ++x) {
             sampler->advance(Point2i(x + offset.x(), y + offset.y()));
             Point2f pixelSample = Point2f((float) (x + offset.x()), (float) (y + offset.y())) + sampler->next2D();
+            //Point2f pixelSample = Point2f((float)(x + offset.x()) + 0.5f, (float)(y + offset.y()) + 0.5f); // used for comparing aliasing
             Point2f apertureSample = sampler->next2D();
 
             /* Sample a ray from the camera */

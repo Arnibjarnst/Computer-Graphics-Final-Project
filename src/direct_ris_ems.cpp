@@ -55,8 +55,7 @@ public:
             samples[i].shadowRay = eqr.shadowRay;
 
             BSDFQueryRecord bqr = BSDFQueryRecord(samples[i].wi, wo, ESolidAngle);
-            bqr.uv = its.uv;
-            bqr.p = its.p;
+            bqr.its = &its;
             samples[i].bsdf = its.mesh->getBSDF()->eval(bqr);
             samples[i].pdf_mat = its.mesh->getBSDF()->pdf(bqr);
             weigth_sum += samples[i].pdf_mat;            

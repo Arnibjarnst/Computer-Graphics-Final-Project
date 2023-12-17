@@ -58,7 +58,7 @@ public:
         m_subsurface = props.getFloat("subsurface", 0.0f);
     }
 
-    virtual ~Disney() {
+    ~Disney() {
         delete m_color;
     }
 
@@ -127,9 +127,9 @@ public:
         float aspect = sqrt(1.0f - 0.9f * m_anisotropic);
         float ax = std::max(0.001f, m_roughness * m_roughness / aspect);
         float ay = std::max(0.001f, m_roughness * m_roughness * aspect);
-        float w_diff = (1.0f - m_metallic) * (1.0f - m_specular);
-        float w_spec = m_metallic + w_diff;
-        float p_diff = w_diff / (w_diff + w_spec + Epsilon);
+        float w_diff = (1.0f - m_metallic);
+        float w_spec = 1;
+        float p_diff = w_diff / (w_diff + w_spec);
         return p_diff * bRec.wo.z() * INV_PI + (1 - p_diff) * Warp::squareToGTR2Anisopdf(wh, ax, ay) * wh.z() / (4 * wh.dot(bRec.wo)); // what is alpha
     }
 
@@ -139,9 +139,9 @@ public:
             return Color3f(0.0f);
         bRec.measure = ESolidAngle;
         bRec.eta = 1.0f;
-        float w_diff = (1.0f - m_metallic) * (1.0f - m_specular);
-        float w_spec = m_metallic + w_diff;
-        float p_diff = w_diff / (w_diff + w_spec + Epsilon);
+        float w_diff = (1.0f - m_metallic);
+        float w_spec = 1;
+        float p_diff = w_diff / (w_diff + w_spec);
         if (_sample.x() < p_diff) {
             // sample diffuse
             const Point2f sample = Point2f(_sample.x() / p_diff, _sample.y());
@@ -183,7 +183,6 @@ private:
     Texture<Color3f> *m_color;
     float m_roughness;
     float m_specular;
-    float m_eta; // IOR
     float m_metallic;
     float m_anisotropic;
     float m_subsurface;
