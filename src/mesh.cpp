@@ -142,6 +142,8 @@ void Mesh::setHitInformation(uint32_t index, const Ray3f &ray, Intersection & it
         Vector3f dp02 = p0 - p2, dp12 = p1 - p2;
         float det = duv02[0] * duv12[1] - duv02[1] * duv12[0];
         if (det == 0) {
+            // should this be (p1-p0).cross(p2-p0) like geoFrame
+            // or be in the other direction
             coordinateSystem((p2 - p0).cross(p1 - p0).normalized(), its.dpdu, its.dpdv);
         }
         else {
@@ -161,11 +163,12 @@ void Mesh::setHitInformation(uint32_t index, const Ray3f &ray, Intersection & it
            tangents that are continuous across the surface. That
            means that this code will need to be modified to be able
            use anisotropic BRDFs, which need tangent continuity */
-
-        its.shFrame = Frame(
-                (bary.x() * m_N.col(idx0) +
-                 bary.y() * m_N.col(idx1) +
-                 bary.z() * m_N.col(idx2)).normalized());
+        Normal3f n = (
+            bary.x() * m_N.col(idx0) +
+            bary.y() * m_N.col(idx1) +
+            bary.z() * m_N.col(idx2)).normalized();
+        Vector3f s = (its.dpdu + n * n.dot(its.dpdu)).normalized();
+        its.shFrame = Frame(s, n.cross(s), n);
     } else {
         its.shFrame = its.geoFrame;
     }

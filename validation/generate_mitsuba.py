@@ -4,9 +4,6 @@ import os
 import argparse
 import pathlib
 
-
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
-
 # Set the variant of the renderer
 mi.set_variant('cuda_ad_rgb')
 
