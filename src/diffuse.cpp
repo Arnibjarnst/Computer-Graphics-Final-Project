@@ -78,7 +78,7 @@ public:
             return Color3f(0.0f);
 
         /* The BRDF is simply the albedo / pi */
-        return m_albedo->eval(bRec.uv) * INV_PI;
+        return m_albedo->eval(*bRec.its) * INV_PI;
     }
 
     /// Compute the density of \ref sample() wrt. solid angles
@@ -116,7 +116,7 @@ public:
 
         /* eval() / pdf() * cos(theta) = albedo. There
            is no need to call these functions. */
-        return m_albedo->eval(bRec.uv);
+        return m_albedo->eval(*bRec.its);
     }
 
     bool isDiffuse() const {

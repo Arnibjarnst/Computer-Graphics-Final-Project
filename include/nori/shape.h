@@ -100,13 +100,13 @@ struct Intersection {
             float By[2] = { py[dim[0]] - p[dim[0]], py[dim[1]] - p[dim[1]] };
 
             float det = A[0][0] * A[1][1] - A[0][1] * A[1][0];
-            if (std::abs(det) < 1e-10f) dudx = dvdx = dudy = dvdy = 0;
+            if (std::abs(det) < Epsilon) dudx = dvdx = dudy = dvdy = 0;
             else {
                 float invDet = 1 / det;
                 dudx = (A[1][1] * Bx[0] - A[0][1] * Bx[1]) * invDet;
                 dvdx = (A[0][0] * Bx[1] - A[1][0] * Bx[0]) * invDet;
-                dudy = (A[1][1] * Bx[0] - A[0][1] * Bx[1]) * invDet;
-                dvdy = (A[0][0] * Bx[1] - A[1][0] * Bx[0]) * invDet;
+                dudy = (A[1][1] * By[0] - A[0][1] * By[1]) * invDet;
+                dvdy = (A[0][0] * By[1] - A[1][0] * By[0]) * invDet;
             }
         }
         else {
