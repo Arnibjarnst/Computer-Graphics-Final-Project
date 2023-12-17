@@ -183,6 +183,22 @@ BoundingBox3f Mesh::getBoundingBox(uint32_t index) const {
     return result;
 }
 
+LightCone Mesh::getLightCone(uint32_t index) const {
+    LightCone res;
+    uint32_t idx0 = m_F(0, index), idx1 = m_F(1, index), idx2 = m_F(2, index);
+    Point3f p0 = m_V.col(idx0), p1 = m_V.col(idx1), p2 = m_V.col(idx2);
+    res.axis = (p1-p0).cross(p2-p0).normalized();
+    res.theta_o = 0.;
+    res.theta_e = M_PI / 2;
+    return res;
+}
+
+LightCone Mesh::getLightCone() const  {
+        LightCone res;
+        for (uint32_t i = 0; i < getPrimitiveCount(); i++) res.expandBy(getLightCone(i));
+        return res;
+    }
+
 Point3f Mesh::getCentroid(uint32_t index) const {
     return (1.0f / 3.0f) *
         (m_V.col(m_F(0, index)) +

@@ -82,6 +82,25 @@ public:
         return M_PI / shape_query.pdf * m_radiance;
     }
 
+    virtual LightCone getLightCone() const override {
+        if(!m_shape)
+            throw NoriException("There is no shape attached to this Area light!");
+        return m_shape->getLightCone();
+    }
+
+    virtual BoundingBox3f getBoundingBox() const override {
+        if (!m_shape)
+            throw NoriException("There is no shape attached to this Area light!");
+        return m_shape->getBoundingBox();
+    }
+
+    // approx
+    float getPower() const override {
+        float angle = getLightCone().theta_o + getLightCone().theta_e;
+        float solid_angle = 2 * M_PI * (1 - std::cos(angle));
+        return m_radiance.maxCoeff() * solid_angle * getBoundingBox().getSurfaceArea();
+    }
+
 
 protected:
     Color3f m_radiance;

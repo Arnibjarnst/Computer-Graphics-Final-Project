@@ -21,6 +21,7 @@
 
 #include <nori/shape.h>
 #include <nori/dpdf.h>
+#include <nori/lightcone.h>
 
 NORI_NAMESPACE_BEGIN
 
@@ -43,6 +44,12 @@ public:
     //// Return an axis-aligned bounding box containing the given triangle
     virtual BoundingBox3f getBoundingBox(uint32_t index) const override;
 
+    //// Return a lightcone of the given triangle
+    virtual LightCone getLightCone(uint32_t index) const override;
+
+    //// Return the lightcone of the entire mesh
+    virtual LightCone getLightCone() const override;
+    
     //// Return the centroid of the given triangle
     virtual Point3f getCentroid(uint32_t index) const override;
 
@@ -123,6 +130,7 @@ protected:
     MatrixXu      m_F;                   ///< Faces
 
     DiscretePDF m_pdf;
+    struct LightCone m_cone;
 };
 
 NORI_NAMESPACE_END

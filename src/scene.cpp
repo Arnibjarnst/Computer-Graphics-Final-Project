@@ -29,15 +29,15 @@ NORI_NAMESPACE_BEGIN
 
 Scene::Scene(const PropertyList &) {
     m_bvh = new BVH();
+    m_lbvh = new LightBVH();
 }
 
 Scene::~Scene() {
     delete m_bvh;
+    delete m_lbvh;
     delete m_sampler;
     delete m_camera;
     delete m_integrator;
-    for(auto e : m_emitters)
-        delete e;
     m_emitters.clear();
 }
 
@@ -55,6 +55,8 @@ void Scene::activate() {
             NoriObjectFactory::createInstance("independent", PropertyList()));
         m_sampler->activate();
     }
+    for (Emitter *emitter : m_emitters) m_lbvh->addEmitter(emitter);
+    m_lbvh->build();
 
     cout << endl;
     cout << "Configuration: " << toString() << endl;
