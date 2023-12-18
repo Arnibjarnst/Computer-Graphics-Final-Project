@@ -111,9 +111,12 @@ public:
     }
 
     float getPower() const override {
-        float inner_solid_angle = 2 * M_PI * (1 - m_cosTheta);
-        float outer_solid_angle = 2 * M_PI * (1 - m_cosThetaFalloff) - inner_solid_angle;
-        return (m_innerRadiance.maxCoeff() * inner_solid_angle + m_outerRadiance.maxCoeff() * outer_solid_angle) * getBoundingBox().getSurfaceArea();
+        float inner_sq = m_thetaFalloff * m_thetaFalloff;
+        float outer_sq = (m_theta - m_thetaFalloff) * (m_theta - m_thetaFalloff);
+        Color3f med_radiance = (m_innerRadiance * inner_sq + m_outerRadiance * outer_sq) / (inner_sq + outer_sq);
+        ShapeQueryRecord sqr;
+        m_shape->sampleSurface(sqr, Vector2f(0.5f));
+        return med_radiance.maxCoeff() * M_PI / sqr.pdf;
     }
 
 
