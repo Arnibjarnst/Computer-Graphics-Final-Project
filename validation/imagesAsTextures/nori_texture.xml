@@ -50,7 +50,7 @@
 			<translate value="0, 0, -0.5"/>
 		</transform>
 		<bsdf type="diffuse">
-			<texture type="image_texture_simple" name="albedo">
+			<texture type="image_texture_simple_color" name="albedo">
 				<string name="filename" value="../meshes/texture.jpg"/>
 			</texture>
 		</bsdf>

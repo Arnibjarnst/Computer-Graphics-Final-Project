@@ -25,7 +25,7 @@
 NORI_NAMESPACE_BEGIN
 
 bool DEBUG = false;
-Color3f DEBUG_COLORS[14] = {
+const Color3f DEBUG_COLORS[14] = {
     Color3f(47, 79, 79) / 255.0f,
     Color3f(34, 139, 34) / 255.0f,
     Color3f(25, 25, 112) / 255.0f,
@@ -53,8 +53,34 @@ float inverseGammaCorrect(float value) {
     return std::pow((value + 0.055f) * 1.f / 1.055f, 2.4f);
 }
 
+float* convertFloatImage(uint8_t* rgb_image, int width, int height) {
+    float* m_map = new float[width * height];
+    unsigned char* pixel = rgb_image;
+    for (int j = height - 1; j >= 0; j--) { // flip y coordinates
+        for (int i = 0; i < width; i++, pixel += 3) {
+            m_map[j * width + i] = (pixel[0] + pixel[1] + pixel[2]) / 765.0f;
+        }
+    }
+    return m_map;
+}
 
-class ImageTextureSimple : public Texture<Color3f> {
+Color3f* convertColorImage(uint8_t* rgb_image, int width, int height) {
+    Color3f* m_map = new Color3f[width * height];
+    unsigned char* pixel = rgb_image;
+    for (int j = height - 1; j >= 0; j--) { // flip y coordinates
+        for (int i = 0; i < width; i++, pixel += 3) {
+            m_map[j * width + i] = Color3f(
+                inverseGammaCorrect(pixel[0] / 255.0f),
+                inverseGammaCorrect(pixel[1] / 255.0f),
+                inverseGammaCorrect(pixel[2] / 255.0f)
+            );
+        }
+    }
+    return m_map;
+}
+
+template <typename T>
+class ImageTextureSimple : public Texture<T> {
 public:
     ImageTextureSimple(const PropertyList& props) {
         std::string filename = props.getString("filename");
@@ -62,17 +88,7 @@ public:
 
         uint8_t* rgb_image = stbi_load(filename.c_str(), &m_width, &m_height, &bpp, 3);
 
-        m_map = new Color3f[m_width * m_height];
-        unsigned char* pixel = rgb_image;
-        for (int j = m_height - 1; j >= 0; j--) { // flip y coordinates
-            for (int i = 0; i < m_width; i++, pixel += 3) {
-                m_map[j * m_width + i] = Color3f(
-                    inverseGammaCorrect(pixel[0] / 255.0f),
-                    inverseGammaCorrect(pixel[1] / 255.0f),
-                    inverseGammaCorrect(pixel[2] / 255.0f)
-                );
-            }
-        }
+        m_map = convertImage(rgb_image);
 
         std::string wrap = props.getString("wrap", "repeat");
         if (wrap == "repeat") m_wrap = WrapMethod::Repeat;
@@ -87,20 +103,20 @@ public:
             "ImageTextureSimple[\n"
             "  delta = %s,\n"
             "  scale = %s,\n"
-            "  tex1 = %s,\n"
-            "  tex2 = %s,\n"
             "]",
             m_delta.toString(),
             m_scale.toString()
         );
     }
 
-    virtual Color3f eval(const Intersection& its) override {
-        const Point2f uv_scaled = Point2f(its.uv.x() * m_scale.x() + m_delta.x(), its.uv.y() * m_scale.y() + m_delta.y());
+    virtual T eval(const Intersection& its) override {
+        const Point2f uv_scaled = Point2f(its.uv.x() * m_scale.x(), its.uv.y() * m_scale.y()) + m_delta;
         Point2i ij = uvmap(uv_scaled);
         return m_map[ij.y() * m_width + ij.x()];
     }
 private:
+    T* convertImage(uint8_t* rgb_image);
+
     Point2i uvmap(const Point2f& uv) const {
         if (m_wrap == WrapMethod::Clamp)
             return Point2i(
@@ -117,22 +133,32 @@ private:
 protected:
     Point2f m_delta;
     Vector2f m_scale;
-    Color3f* m_map;
+    T* m_map;
     int m_width;
     int m_height;
     WrapMethod m_wrap;
 };
 
+template <>
+Color3f* ImageTextureSimple<Color3f>::convertImage(uint8_t* rgb_image) {
+    return convertColorImage(rgb_image, m_width, m_height);
+}
+
+template <>
+float* ImageTextureSimple<float>::convertImage(uint8_t* rgb_image) {
+    return convertFloatImage(rgb_image, m_width, m_height);
+}
 
 struct ResampleWeight {
     int firstTexel;
     float weight[4];
 };
 
+template <typename T>
 class UVArray {
 public:
-    UVArray(int uRes, int vRes, const Color3f* buf = nullptr) : uRes(uRes), vRes(vRes) {
-        buffer = new Color3f[uRes * vRes];
+    UVArray(int uRes, int vRes, const T* buf = nullptr) : uRes(uRes), vRes(vRes) {
+        buffer = new T[uRes * vRes];
         if (buf) for (int i = 0; i < uRes * vRes; i++) buffer[i] = buf[i];
     }
 
@@ -144,27 +170,28 @@ public:
         return vRes;
     }
 
-    Color3f &operator()(int u, int v) {
+    T &operator()(int u, int v) {
         return buffer[v * uRes + u];
     }
 private:
     int uRes;
     int vRes;
-    Color3f *buffer;
+    T *buffer;
 };
 
 
+template <typename T>
 class MipMap {
 public:
-    MipMap(const Color3f *img, Point2i &res, WrapMethod wrap) : res(res), wrap(wrap) {
+    MipMap(const T *img, Point2i &res, WrapMethod wrap) : res(res), wrap(wrap) {
         Point2i newRes((1 << int(ceil(log2(res.x())))), (1 << int(ceil(log2(res.y())))));
 
-        std::unique_ptr<Color3f[]> resampledImage = nullptr;
+        std::unique_ptr<T[]> resampledImage = nullptr;
 
         if (newRes.x() != res.x() || newRes.y() != res.y()) {
             std::unique_ptr<ResampleWeight[]> sWeights = resampleWeights(res.x(), newRes.x());
 
-            resampledImage.reset(new Color3f[newRes.x() * newRes.y()]);
+            resampledImage.reset(new T[newRes.x() * newRes.y()]);
 
             tbb::parallel_for(
                 tbb::blocked_range<uint32_t>(0u, res.y(), 16), // what is grain size
@@ -190,10 +217,10 @@ public:
             tbb::parallel_for(
                 tbb::blocked_range<uint32_t>(0u, newRes.x(), 16), // what is grain size
                 [&](const tbb::blocked_range<uint32_t>& range) {
-                    Color3f* temp = new Color3f[newRes.y()];
+                    T* temp = new T[newRes.y()];
                     for (uint32_t s = range.begin(); s != range.end(); ++s) {
                         for (int t = 0; t < newRes.y(); ++t) {
-                            temp[t] = Color3f(0.0f);
+                            temp[t] = T(0.0f);
                             for (int j = 0; j < 4; ++j) {
                                 int offset = tWeights[t].firstTexel + j;
                                 if (wrap == WrapMethod::Repeat)
@@ -204,7 +231,7 @@ public:
                             }
                         }
                         for (int t = 0; t < newRes.y(); ++t)
-                            resampledImage[t * newRes.x() + s] = temp[t].cwiseAbs();
+                            resampledImage[t * newRes.x() + s] = abs(temp[t]);
                     }
                     delete[] temp;
                 }
@@ -217,14 +244,14 @@ public:
         pyramid.resize(nLevels);
         
         pyramid[0].reset(
-            new UVArray(res.x(), res.y(), resampledImage ? resampledImage.get() : img)
+            new UVArray<T>(res.x(), res.y(), resampledImage ? resampledImage.get() : img)
         );
 
         for (int i = 1; i < nLevels; i++) {
             int uRes = std::max(1, pyramid[i - 1]->uSize() / 2);
             int vRes = std::max(1, pyramid[i - 1]->vSize() / 2);
 
-            pyramid[i].reset(new UVArray(uRes, vRes));
+            pyramid[i].reset(new UVArray<T>(uRes, vRes));
 
             tbb::parallel_for(
                 tbb::blocked_range<uint32_t>(0u, vRes, 16), // what is grain size
@@ -244,7 +271,10 @@ public:
             );
         }
     }
-    Color3f Lookup(const Point2f &uv, const Vector2f &duvdx, const Vector2f& duvdy) const {
+
+    T debug(const Color3f &d) const;
+
+    T Lookup(const Point2f &uv, const Vector2f &duvdx, const Vector2f& duvdy) const {
         float w = std::max(
             std::max(std::abs(duvdx[0]), std::abs(duvdx[1])),
             std::max(std::abs(duvdy[0]), std::abs(duvdy[1]))
@@ -253,7 +283,7 @@ public:
         float level = pyramid.size() - 1 + log2(std::max(w, float(1e-8)));
 
         if (DEBUG) {
-            return DEBUG_COLORS[clamp(int(level), 0, pyramid.size())];
+            return debug(DEBUG_COLORS[clamp(int(level), 0, pyramid.size())]);
         }
 
         if (level < 0)
@@ -294,8 +324,8 @@ private:
         return weights;
     }
 
-    Color3f eval(int level, int i, int j) const {
-        UVArray &l = *pyramid[level];
+    T eval(int level, int i, int j) const {
+        UVArray<T> &l = *pyramid[level];
         if (wrap == WrapMethod::Clamp) {
             i = clamp(i, 0, l.uSize()-1);
             j = clamp(j, 0, l.vSize()-1);
@@ -310,7 +340,7 @@ private:
         return l(i, j);
     }
 
-    Color3f triangle(int level, const Point2f& uv) const {
+    T triangle(int level, const Point2f& uv) const {
         level = clamp(level, 0, pyramid.size() - 1);
         float u = uv.x() * pyramid[level]->uSize() - 0.5f;
         float v = uv.y() * pyramid[level]->vSize() - 0.5f;
@@ -324,12 +354,22 @@ private:
     }
 
     Point2i res;
-    std::vector<std::unique_ptr<UVArray>> pyramid;
+    std::vector<std::unique_ptr<UVArray<T>>> pyramid;
     const WrapMethod wrap;
 };
 
+template <>
+Color3f MipMap<Color3f>::debug(const Color3f &d) const {
+    return d;
+}
 
-class ImageTexture : public Texture<Color3f> {
+template <>
+float MipMap<float>::debug(const Color3f &d) const {
+    return 1.0f;
+}
+
+template <typename T>
+class ImageTexture : public Texture<T> {
 public:
     ImageTexture(const PropertyList& props) {
         std::string filename = props.getString("filename");
@@ -337,29 +377,19 @@ public:
 
         uint8_t* rgb_image = stbi_load(filename.c_str(), &m_width, &m_height, &bpp, 3);
 
-        Color3f* m_map = new Color3f[m_width * m_height];
-        unsigned char* pixel = rgb_image;
-        for (int j = m_height - 1; j >= 0; j--) { // flip y coordinates
-            for (int i = 0; i < m_width; i++, pixel += 3) {
-                m_map[j * m_width + i] = Color3f(
-                    inverseGammaCorrect(pixel[0] / 255.0f),
-                    inverseGammaCorrect(pixel[1] / 255.0f),
-                    inverseGammaCorrect(pixel[2] / 255.0f)
-                );
-            }
-        }
+        T* m_map = convertImage(rgb_image);
 
         std::string wrap = props.getString("wrap", "repeat");
         if (wrap == "repeat") m_wrap = WrapMethod::Repeat;
         else if (wrap == "clamp") m_wrap = WrapMethod::Clamp;
 
-        mipmap = new MipMap(m_map, Point2i(m_width, m_height), m_wrap);
+        mipmap = new MipMap<T>(m_map, Point2i(m_width, m_height), m_wrap);
 
         m_delta = props.getPoint2("delta", Point2f(0.0f));
         m_scale = props.getVector2("scale", Vector2f(1.0f));
     }
 
-    virtual Color3f eval(const Intersection &its) override {
+    virtual T eval(const Intersection &its) override {
         const Point2f uv_scaled = Point2f(its.uv.x() * m_scale.x(), its.uv.y() * m_scale.y()) + m_delta;
         const Vector2f duvdx = Vector2f(its.dudx * m_scale.x(), its.dvdx * m_scale.y());
         const Vector2f duvdy = Vector2f(its.dudy * m_scale.x(), its.dvdy * m_scale.y());
@@ -379,15 +409,29 @@ public:
             m_scale.toString()
         );
     }
+private:
+    T* convertImage(uint8_t* rgb_image);
 protected:
     Point2f m_delta;
     Vector2f m_scale;
-    const MipMap* mipmap;
+    const MipMap<T>* mipmap;
     int m_width;
     int m_height;
     WrapMethod m_wrap;
 };
 
-NORI_REGISTER_CLASS(ImageTextureSimple, "image_texture_simple")
-NORI_REGISTER_CLASS(ImageTexture, "image_texture")
+ template <>
+ Color3f* ImageTexture<Color3f>::convertImage(uint8_t* rgb_image) {
+     return convertColorImage(rgb_image, m_width, m_height);
+ }
+
+ template <>
+ float* ImageTexture<float>::convertImage(uint8_t* rgb_image) {
+     return convertFloatImage(rgb_image, m_width, m_height);
+ }
+
+NORI_REGISTER_TEMPLATED_CLASS(ImageTextureSimple, Color3f, "image_texture_simple_color")
+NORI_REGISTER_TEMPLATED_CLASS(ImageTextureSimple, float, "image_texture_simple_float")
+NORI_REGISTER_TEMPLATED_CLASS(ImageTexture, Color3f, "image_texture_color")
+NORI_REGISTER_TEMPLATED_CLASS(ImageTexture, float, "image_texture_float")
 NORI_NAMESPACE_END
