@@ -96,9 +96,9 @@ public:
 
     // approx
     float getPower() const override {
-        float angle = getLightCone().theta_o + getLightCone().theta_e;
-        float solid_angle = 2 * M_PI * (1 - std::cos(angle));
-        return m_radiance.maxCoeff() * solid_angle * getBoundingBox().getSurfaceArea();
+        ShapeQueryRecord sqr;
+        m_shape->sampleSurface(sqr, Vector2f(0.5f));
+        return m_radiance.maxCoeff() * M_PI / sqr.pdf;
     }
 
 
