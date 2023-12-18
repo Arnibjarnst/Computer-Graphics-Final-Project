@@ -85,8 +85,8 @@ public:
     LightCone getLightCone() const override {
         LightCone res;
         res.axis = m_direction;
-        res.theta_e = m_theta;
-        res.theta_o = 0.f;
+        res.theta_e = m_theta - m_thetaFalloff;
+        res.theta_o = m_thetaFalloff;
         return res;
     }
 
