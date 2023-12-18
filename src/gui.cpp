@@ -330,6 +330,7 @@ void NoriScreen::openEXR(const std::string& filename) {
     m_block.lock();
     m_block.init(Vector2i(bitmap.cols(), bitmap.rows()), nullptr);
     m_block.fromBitmap(bitmap);
+    m_block.denoise();
     Vector2i bsize = m_block.getSize();
     m_render_canvas->update();
     m_block.unlock();

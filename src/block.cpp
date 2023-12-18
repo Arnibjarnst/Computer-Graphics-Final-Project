@@ -21,6 +21,7 @@
 #include <nori/rfilter.h>
 #include <nori/bbox.h>
 #include <tbb/tbb.h>
+#include <OpenImageDenoise/oidn.h>
 
 NORI_NAMESPACE_BEGIN
 
@@ -88,6 +89,50 @@ void ImageBlock::fromBitmap(const Bitmap &bitmap) {
     for (int y=0; y<m_size.y(); ++y)
         for (int x=0; x<m_size.x(); ++x)
             coeffRef(y, x) << bitmap.coeff(y, x), 1;
+}
+
+void ImageBlock::denoise() {
+    Eigen::Array<Color3f, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> color;
+    for (int y=0; y<m_size.y(); ++y)
+        for (int x=0; x<m_size.x(); ++x)
+            color(y,x) << coeff(y,x).head<3>();
+    OIDNDevice device = oidnNewDevice(OIDN_DEVICE_TYPE_DEFAULT); // CPU or GPU if available
+    oidnCommitDevice(device);
+    OIDNBuffer colorBuf = oidnNewBuffer(device, cols() * rows() * 3 * sizeof(float));
+
+    // Copy inputColors to colorBuf using a for-loop
+    float* colorPtr = (float*)oidnGetBufferData(colorBuf);
+    for (int i = 0; i < cols() * rows(); ++i) {
+        colorPtr[i * 3 + 0] = color(i).r();
+        colorPtr[i * 3 + 1] = color(i).g();
+        colorPtr[i * 3 + 2] = color(i).b();
+    }
+
+    OIDNFilter filter = oidnNewFilter(device, "RT"); // generic ray tracing filter
+    oidnSetFilterImage(filter, "color", colorBuf,
+                       OIDN_FORMAT_FLOAT3, cols(), rows(), 0, 0, 0); // beauty
+    oidnSetFilterImage(filter, "output", colorBuf,
+                       OIDN_FORMAT_FLOAT3, cols(), rows(), 0, 0, 0); // denoised beauty
+    oidnSetFilterBool(filter, "hdr", true); // beauty image is HDR
+    oidnCommitFilter(filter);
+
+    // Filter the beauty image
+    oidnExecuteFilter(filter);
+
+    // Check for errors
+    const char* errorMessage;
+    if (oidnGetDeviceError(device, &errorMessage) != OIDN_ERROR_NONE) {
+        std::cerr << "Error: " << errorMessage << std::endl;
+    }
+
+    // Cleanup
+    oidnReleaseBuffer(colorBuf);
+    oidnReleaseFilter(filter);
+    oidnReleaseDevice(device);
+
+    for (int y=0; y<m_size.y(); ++y)
+        for (int x=0; x<m_size.x(); ++x)
+            coeffRef(y,x) << color(y,x), 1;
 }
 
 void ImageBlock::put(const Point2f &_pos, const Color3f &value) {

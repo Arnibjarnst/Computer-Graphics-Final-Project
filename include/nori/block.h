@@ -91,6 +91,8 @@ public:
     /// Convert a bitmap into an image block
     void fromBitmap(const Bitmap &bitmap);
 
+    void denoise();
+
     /// Clear all contents
     void clear() { setConstant(Color4f()); }
 
