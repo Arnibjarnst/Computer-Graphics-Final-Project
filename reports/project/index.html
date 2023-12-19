@@ -403,8 +403,8 @@ For the MAT integrator, we can notice that, because of the probability density u
 
 Similar results can be observed when sampling the cosine-weighted hemisphere.
 <div class="twentytwenty-container">
-    <img src="../../validation/ris/direct_hemi/odyssey_ris5.png" alt="Ems RIS (M=5)" class="img-responsive">
-    <img src="../../validation/ris/direct_hemi/odyssey_ris20.png" alt="Ems RIS (M=20)" class="img-responsive">
+    <img src="../../validation/ris/direct_hemi/odyssey_ris5.png" alt="Hemisphere RIS (M=5)" class="img-responsive">
+    <img src="../../validation/ris/direct_hemi/odyssey_ris20.png" alt="Hemisphere RIS (M=20)" class="img-responsive">
 </div>
 
 For global illumination, RIS can be used do estimate the BSDF value in a more robust way. In this case, RIS is used to select a direction upon encountering a diffuse surface. This selection is based on the probability density $g = pdf_{mat}$. I've integrated this new selection technique both in the `PathMAT` and in the `PathMIS` integrator.
