@@ -15,13 +15,18 @@ for i in range(-30, 30, 5):
         
 for i in range(-25, 25, 10):
     for j in range(-25, 25, 10):
-        instances += f"""
-<instance type="instance">
-    <integer name="subscene" value="2"/>
-    <transform name="toWorld">
-        <translate value="{i + random()}, {j + random()}, 5"/>
-    </transform>
-</instance>"""
+        emitters += f"""
+    <mesh type="sphere">
+        <point name="center" value="{i + random()},{j + random()},1"/>
+        <float name="radius" value="0.05"/>
+        <bsdf type="diffuse">
+            <color name="albedo" value="1,1,1"/>
+        </bsdf>
+
+        <emitter type="area">
+            <color name="radiance" value="3000,2000,0"/>
+        </emitter>
+    </mesh>"""
         
 
     
@@ -32,7 +37,7 @@ with open('./wood_scene.xml', 'w') as f:
 <scene>
 	<!-- Independent sample generator, 512 samples per pixel -->
 	<sampler type="independent">
-		<integer name="sampleCount" value="32"/>
+		<integer name="sampleCount" value="128"/>
 	</sampler>
 
 	<!-- Use the path tracer without multiple importance sampling -->
@@ -73,20 +78,7 @@ with open('./wood_scene.xml', 'w') as f:
 			<translate value="10,0,25"/>
 		</transform>
 	</mesh>
-    <subscene type="subscene">
-        <integer name="id" value="2"/>
-        <mesh type="sphere">
-            <point name="center" value="0,0,1"/>
-            <float name="radius" value="0.05"/>
-            <bsdf type="diffuse">
-                <color name="albedo" value="1,1,1"/>
-            </bsdf>
-
-            <emitter type="area">
-                <color name="radiance" value="3000,2000,0"/>
-            </emitter>
-        </mesh>
-    </subscene>
+""" + emitters + """
 	
 
 	<subscene type="subscene">

@@ -226,11 +226,19 @@ My first approach to implementing this feature was to modify nori's function tha
 I therefore resolved to use another approach: I downoladed the precompiled executable from the website of the Open Denoiser and run it directly, externally to nori. In order to convert to and from the required input type, i.e. little-endian pfm, I used ImageMagick.
 
 <div class="twentytwenty-container">
-    <img src="../../validation/homogeneous/nori_box_mis_color_max_coeff.png" alt="MIS simple max coeff" class="img-responsive">
-    <img src="../../validation/homogeneous/cbox_mis_albedo=0.1_t=10.0.png" alt="MIS simple" class="img-responsive">
-    <img src="../../validation/homogeneous/cbox_mitsuba_albedo=0.1_t=10.0.png" alt="Mitsuba" class="img-responsive">
-    <img src="../../validation/homogeneous/nori_box_mis_color.png" alt="MIS" class="img-responsive">
-
+    <img src="../../validation/denoising/table_mis/original.png" alt="Original" class="img-responsive">
+    <img src="../../validation/denoising/table_mis/denoised.png" alt="Denoised" class="img-responsive">
+    <img src="../../validation/denoising/table_mis/diff.png" alt="Difference (brightness 32x)" class="img-responsive">
+</div>
+<div class="twentytwenty-container">
+    <img src="../../validation/denoising/tricgl_mis/original.png" alt="Original" class="img-responsive">
+    <img src="../../validation/denoising/tricgl_mis/denoise.png" alt="Denoised" class="img-responsive">
+    <img src="../../validation/denoising/tricgl_mis/diff.png" alt="Difference (brightness 32x)" class="img-responsive">
+</div>
+<div class="twentytwenty-container">
+    <img src="../../validation/denoising/woods/original.png" alt="Original" class="img-responsive">
+    <img src="../../validation/denoising/woods/denoise.png" alt="Denoised" class="img-responsive">
+    <img src="../../validation/denoising/woods/diff.png" alt="Difference (brightness 32x)" class="img-responsive">
 </div>
 ### Object instancing
 **Relevant files**
@@ -279,9 +287,11 @@ Total runtime   | -               | 176.2 MB  | 1.7 m
 Total memory consumption was monitored with Task Manager
 
 ### Rendering on the cluster
+I encountered many problems while trying to render using the cluster. I was not able to build the project in the login nodes because of incopactibilities of the various package with the modules available on the cluster. As a last resort, I tried to upload a precomiled program, but while this seemed to work at first, it ultimately got rejected from the compute nodes. I tried looking into the issue by contacting the support team, but I sadly was not able to successfully execute any job on th ecluster within the due date.
 ### Modeling Meshes
 I initially had some troubles using the add-on for Blender to export objects to Nori, but with some modifications I got it working. I used Blender 2.90, as Blender 4.0.0 was reported to be too recent for the add-on, and the 2.90 version was mentioned in the GitHub page of the add-on itself. Furthermore, the `Support` argument of the `bl_info` variable had to be changed from `TESTING` to `COMMUNITY`.
-TODO: Insert description/source of meshes created/used.
+
+I would have loved to spend more time on this feature, creating new meshes to import, but the implementation of other features had priority. I used this feature only to create a scene containing trees, which I modified by hand once exported to include object instancing. The mesh for the tree was created by MattBecker ( https://blendswap.com/blend/17294 ).
 
 ### Resampled Importance Sampling (RIS)
 **Relevant files**
@@ -358,9 +368,9 @@ For this feature, I implemented the approach to the many light rendering problem
 
 For keeping track of the additional data that the technique described in the paper uses, I created a new data structure: the Light Cone. This datastructure is linked to a `LightBVHNode` (a cluster of lights) and keeps track of an axis and two different angles, `theta_o` that describes a cone around the axis including all the normals to the emitters in the cluster, and an additional angle `theta_o` which also accounts for the falloff of the meitters. In the file `lightcone.h`, this struct is implemented togheter with some utility functions, in particular to merge different cones togheter.
 
-In order to obtain these information from each Emitter, I added the functions `getLightCone()` and `getPower()` to the `emitter.h` interface. Since the `getLightCone()` function can depend on the shape of the emitter, I also added it to every sahpe and to the `shape.h` interface.
+In order to obtain these information from each Emitter, I added the functions `getLightCone()` and `getPower()` to the `emitter.h` interface. Since the `getLightCone()` function can depend on the shape of the emitter, I also added it to every shape and to the `shape.h` interface.
 
-For implemeting this hierarcy, I started taking the already present `bvh.{h, cpp}` files as reference, and changing it as needed in `lightbvh.{h, cpp}`. The first thing I needed to alter was the content of a node: the struct `LightBVHNode` used in this BVH contains, in addition to the bounding box of the light cluster, also the associated Light Cone and the power measure. Consequently, I also needed to change the `struct Bins` and the building procedure of the hierarcy to account for these additional measures. In particular, the Surface Area Heuristic (SAH) was changed with the Surface Area Orientation Heuristic (SAOH) described in the paper.  Since I did not completely comprehend the stopping criteria described in the paper to define when to create a leaf node, I amplified the initial `bestCost` variable in the original code to incentivize the process to separate each emitter into its own node. Changing the code for the building process was particularly challenging, both because of the sheer complexity of the method used (I had to refer back to the article describing this technique), and because the `execute_sequentially` function was not designed to store the bounding box into the child node (and clearly not the light cone and power value either).
+For implemeting this hierarcy, I started taking the already present `bvh.{h, cpp}` files as reference, and changing it as needed in `lightbvh.{h, cpp}`. The first thing I needed to alter was the content of a node: the struct `LightBVHNode` used in this BVH contains, in addition to the bounding box of the light cluster, also the associated Light Cone and the power measure. Consequently, I also needed to change the `struct Bins` and the building procedure of the hierarcy to account for these additional measures. In particular, the Surface Area Heuristic (SAH) was changed with the Surface Area Orientation Heuristic (SAOH) described in the paper.  Since I did not completely comprehend the stopping criteria described in the paper to define when to create a leaf node, I amplified the initial `bestCost` variable in the original code to incentivize the process to separate each emitter into its own node. Changing the code for the building process was particularly challenging, both because of the sheer complexity of the method used (I had to refer back to the article describing this binned building technique), and because the `execute_sequentially` function was not designed to store the bounding box into the child node (and clearly not the light cone and power value either).
 
 The tree traversal is implemented in the `sample` function of `LightBVH`. As described in the paper, this happend stochastically, selecting each time one of the two chidlren of the current node based on their importance with respect to the shading point. The importance function, detailed in the paper, depends on the distance between the shading point and the center of the cluster of lights and the power of the lights themselves, as well as on the cosine of the angle formed by the vector connecting these two points and  the axis of the cone associated with the cluster. To sample this tree, we use a new query record datastructure, the `LightBVHQueryRecord`, which contains the coordinates of the shading point and the relative surface normal, and is used to return the pdf of the sampling. To inisiate this whole operation, I created an alternative `getRandomEmitter` function in the `scene.h` interface, which directly calls `sample`.
 
@@ -375,7 +385,15 @@ To verificate this approach, I first of all verified that this new emitter sampl
     <img src="../../validation/manylights/veach/veach_mis.png" alt="MIS with manylights" class="img-responsive">
 </div>
 
-TODO scene with more emitters
+To further verify this feature, I created a scene with more emitters: 25 spheric area emitters and a bigger one, outside of the scene, emitting blue light. Altough their number is still relatively small, we can already notice a significant reduction of the noise in the scene. Unfortunately, we can also notice that some fireflies are created in this scenes. I investigated a little on these, and my hypotesis is that they are the result of the selection of an emitter with low pdf, but I could not reach any definitive statement. These image where rendered with 128 samples per pixel.
+<div class="twentytwenty-container">
+    <img src="../../validation/manylights/wood_high/wood_scene.png" alt="MIS" class="img-responsive">
+    <img src="../../validation/manylights/wood_high/wood_scene_maylights.png" alt="MIS with manylights" class="img-responsive">
+</div>
+<div class="twentytwenty-container">
+    <img src="../../validation/manylights/wood_low/wood_scene.png" alt="MIS" class="img-responsive">
+    <img src="../../validation/manylights/wood_low/wood_scene_manylights.png" alt="MIS with manylights" class="img-responsive">
+</div>
 
 <!-- Bootstrap core CSS and JavaScript -->
 
