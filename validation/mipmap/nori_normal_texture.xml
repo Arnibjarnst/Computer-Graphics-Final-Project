@@ -22,7 +22,7 @@
     <string name="filename" value="./cube.obj"/>
 
     <bsdf type="diffuse">
-      <texture type="image_texture_simple" name="albedo">
+      <texture type="image_texture_simple_color" name="albedo">
         <string name="filename" value="./checkerboard.jpg"/>
         <vector name="scale" value="50, 50"/>
       </texture>

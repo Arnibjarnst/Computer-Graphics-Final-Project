@@ -12,10 +12,19 @@ Student Names: Árni Bjarnsteinsson and Gianluca Figini
 
 ### Images as Textures
 
-**Relevant files:**
+<font size="+1">**Relevant files:**</font>
 <ul>
     <li> <code>image_texture.cpp</code></li>
 </ul>
+
+<font size="+1">**Implementation:**</font>
+
+The ImageTextureSimple is a templated class that implements the image textures without mipmaps. Currently it only support .jpg images and reading them either
+as floats (useful for roughness/specular/metallic maps e.g. for the disney brdf) and colors. If colors are used I convert them from sRGB to linear RGB.
+
+<font size="+1">**Validation:**</font>
+
+Here we compare a Mitsuba and a Nori rendering of a rock with diffuse bsdf and an image texture.
 
 <div class="twentytwenty-container">
     <img src="../../validation/imagesAsTextures/mitsuba_texture.png" alt="Mitsuba" class="img-responsive">
@@ -24,20 +33,20 @@ Student Names: Árni Bjarnsteinsson and Gianluca Figini
 
 ### Simple Emitters (Spotlight)
 
-**Relevant files:**
+<font size="+1">**Relevant files:**</font>
 <ul>
     <li> <code>spotlight.cpp</code></li>
     <li> <code>spotlight_area.cpp</code></li>
 </ul>
 
-**Implementation:**
+<font size="+1">**Implementation:**</font>
 
 The implementation is very straight forward and is based on the pointlight, except now we also specify a maximum angle of illumnation and another (smaller) angle,
 called the falloff angle. The light contribution is exactly like the pointlight if we are within the falloff angle else it is linearly interpolated from 1 to 0
 till we reach the maximum angle.
 
 
-**Validation:**
+<font size="+1">**Validation:**</font>
 
 To validate our spotlight I created a scene in mitsuba and nori (note that the light intensity is slightly different but that is simply implementation detail in each renderer),
 I also compared scenes where I add an arealight to the scene.
@@ -67,25 +76,82 @@ As we can see this gives smoother shadows.
 
 ### Low Discrepancy Sampling
 
+<font size="+1">**Relevant files:**</font>
+
+<ul>
+    <li> <code>halton.cpp</code></li>
+    <li> <code>render.cpp</code></li>
+    <li> <code>sampler.h</code></li>
+</ul>
+
+<font size="+1">**Implementation:**</font>
+
+I implemented a scrambled Halton sampler based off the implementation in the PBR book. It needs to know the global position of the pixel being rendered so small changes
+needed to be made to the Sampler class. I scramble the sequences for the first 1000 primes when constructing the class so all different threads have the same permutations.
+Then before every block renders (for 1 sample) I call the generate() to keep track of which index I'm on in the sampler. On top of that I have to call advance(p) before every
+pixel at position p to keep samples in the image plane well distriubted. This also requires us to to not scramble the first two dimensions.
+
+<font size="+1">**Validation:**</font>
+
+I compared two Nori renderings of a scene using 16 samples per pixel, one with an independent sampler and one with the Halton sampler.
+As we can see the noise using the Halton sampler is significantly lower.
+
 <div class="twentytwenty-container">
     <img src="../../validation/halton/independent.png" alt="Independent" class="img-responsive">
     <img src="../../validation/halton/halton.png" alt="Halton" class="img-responsive">
 </div>
 
+This is what the scenes look like if we render them for 1024 samples per pixel. They both seem to converge to the same results, so our Halton sampler seems to not be biased.
+
+<div class="twentytwenty-container">
+    <img src="../../validation/halton/independent_spp=1024.png" alt="Independent" class="img-responsive">
+    <img src="../../validation/halton/halton_spp=1024.png" alt="Halton" class="img-responsive">
+</div>
+
 
 ### Mip-Mapping for texture
 
-https://blog.yiningkarlli.com/2018/10/bidirectional-mipmap.html
+<font size="+1">**Relevant files:**</font>
+
+<ul>
+    <li> <code>image_texture.cpp</code></li>
+    <li> <code>perspective.h</code></li>
+    <li> <code>ray.h</code></li>
+    <li> <code>shape.h</code></li>
+</ul>
+
+<font size="+1">**Implementation:**</font>
+
+We expanded on the ImageTextureSimple class in image_texture.cpp to create the ImageTexture class which is exactly the same excepts uses a mipmap to query for it's
+texture value. The implementation is based off the PBR book and https://github.com/mmp/pbrt-v3.
+
+Instead of introduction a differential subclass of rays I use the same
+class except with a boolean isDifferential attribute. We generate rays with differentials in sampleRay() method in perspective.cpp by generating two directions
+that are one pixel off in the x and y coordinates. When we set hit information we also call Intersection::computeDifferentials() which computes all the neccessary partial
+derivatives needed to find the appropriate mipmap level.
+
+The MipMap itself upsamples the texture to the next power of 2 and then halfs it recursively by averaging each pixel
+to find the texture at each level. To find the appropriate level when evaluating the texture we take the maximum partial derivative of
+$\frac{\delta u}{\delta x}, \frac{\delta u}{\delta y}, \frac{\delta v}{\delta x}, \frac{\delta v}{\delta y}$, w and then calculating $level = maxLevel - 1 - log2(w)$.
+Then we do trilinear interpolation to find the texture value (linear between mipmap levels and bilinear in each level)
+
+<font size="+1">**Validation:**</font>
+
+First let's compare a checkerboard pattern on a plane. The mipmap has better performance and is able to remove aliasing from the image.
 
 <div class="twentytwenty-container">
     <img src="../../validation/mipmap/nori_mipmap_rand_on.png" alt="mipmap" class="img-responsive">
     <img src="../../validation/mipmap/nori_normal_texture_rand_on.png" alt="simple" class="img-responsive">
 </div>
 
+The anti-aliasing is even more obvious if we remove the randomness of sampling in the image plane.
+
 <div class="twentytwenty-container">
     <img src="../../validation/mipmap/nori_mipmap_rand_off.png" alt="mipmap" class="img-responsive">
     <img src="../../validation/mipmap/nori_normal_texture_rand_off.png" alt="simple" class="img-responsive">
 </div>
+
+Here is a debug visualization to show what level is being sampled. (lowest is level 3 and highest is level 10)
 
 <div class="twentytwenty-container">
     <img src="../../validation/mipmap/nori_mipmap_level[3-10].png" alt="mipmap levels" class="img-responsive">
@@ -93,9 +159,25 @@ https://blog.yiningkarlli.com/2018/10/bidirectional-mipmap.html
 
 ### Disney BSDF
 
-eval function: https://github.com/wdas/brdf/blob/main/src/brdfs/disney.brdf#L119
+<font size="+1">**Relevant files:**</font>
 
-sampling weights: https://cgl.ethz.ch/teaching/cg23/www-nori/example_reports/mylonopoulos_sancho/report.html
+<ul>
+    <li> <code>disney.cpp</code></li>
+    <li> <code>warp.cpp</code></li>
+</ul>
+
+<font size="+1">**Implementation:**</font>
+
+The implementation is mostly based on the paper <a href="https://media.disneyanimation.com/uploads/production/publication_asset/48/asset/s2012_pbs_disney_brdf_notes_v3.pdf"> "Physically Based Shading at Disney - Burley 2012"</a>
+and the corresponding <a href="https://github.com/wdas/brdf/blob/main/src/brdfs/disney.brdf"> implementation</a>. The following parameters were implemented:
+color, roughness, specular, metallic, anisotropic and subsurface each one accepts either a single value or a texture. Since clearcoat was not implemented we only need to worry about the diffuse and specular component.
+We importance sample these components with weight (1-metallic) for the diffuse and 1 for the specular. If we sample from the diffuse we sample from a cosine hemispherical
+distribution. Else we sample from the anisotropic Generalized-Trowbridge-Reitz with $\gamma = 2$ also known as GGX which is the disney microfacet distribution of the main specular lobe.
+
+<font size="+1">**Validation:**</font>
+
+For each parameter I generate 11 spheres, each with a distinct value of the specified parameter while all others take their default values. I compare with the principled
+bsdf of Mitsuba (based on the same paper).
 
 **Roughness**
 <div class="twentytwenty-container">
@@ -131,25 +213,24 @@ sampling weights: https://cgl.ethz.ch/teaching/cg23/www-nori/example_reports/myl
 
 ### Homogeneous Volumetric Participating Media
 
-**Relevant files:** // TODO: update files and description
+<font size="+1">**Relevant files:**</font>
 <ul>
     <li> <code>medium.h</code></li>
     <li> <code>henyey_greenstein.cpp</code></li>
     <li> <code>isotropic.cpp</code></li>
     <li> <code>homogeneous.cpp</code></li>
-    <li> <code>shape.h</code></li>
-    <li> <code>shape.cpp</code></li>
-    <li> <code>mesh.cpp</code></li>
-    <li> <code>sphere.cpp</code></li>
     <li> <code>trivial_bsdf.cpp</code></li>
     <li> <code>volumetric_path_mis_simple.cpp</code></li>
     <li> <code>volumetric_path_mis.cpp</code></li>
-    <li> <code>camera.h</code></li>
+    <li> <code>scene.h</code></li>
     <li> <code>perspective.cpp</code></li>
+    <li> <code>shape.h</code></li>
 </ul>
 
+<font size="+1">**Implementation:**</font>
+
 For one of my advanced features I implemented Volumetric Path Tracing (VPT) in our renderer. It features homogeneous participating media,
-various phase functions, MIS and a simple path tracer (MATS)
+various phase functions and 2 integrators.
 
 Medium in the renderer can either be attached to geometric primitives (mesh/sphere) or to the camera. The user can attach an interior and an exterior
 medium to shapes and if no medium is attached to a shape then rays bouncing off that shape will stay in the same medium else it will take that shapes medium
@@ -169,15 +250,15 @@ has two methods, <code>tr()</code> to calculate the transmission over a given di
 a direction at the scattering location.
 
 The homogeneous medium samples by choosing a random color channel, sampling with that channel extinction coefficient and then weighing the results with
-multiple importance sampling using the pdfs of all the channels.
+multiple importance sampling using the pdfs of all three channels.
 
 **Volumetric Integrators**
 
 I created two integrators, both basen on multiple importance sampling. One that considers media boundaries as occluding when sampling emitters in the scene, this one
 matches the volumetric integrator in mitsuba (MIS Simple). The other does not consider media boundaries occluding but calculates the transmittance of the shadow ray and multiplies
-it with the emitter sampling contribution (MIS). This gives better performance around boundaries.
+it with the emitter sampling contribution (MIS). This gives better performance around boundaries of mediums.
 
-**Validation**
+<font size="+1">**Validation:**</font>
 
 Below are comparisions of the simple MIS integrator and the mitsuba integrator first with constant coefficients.
 
