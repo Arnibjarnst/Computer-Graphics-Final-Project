@@ -466,14 +466,24 @@ To verificate this approach, I first of all verified that this new emitter sampl
     <img src="../../validation/manylights/veach/veach_mis.png" alt="MIS with manylights" class="img-responsive">
 </div>
 
-To further verify this feature, I created a scene with more emitters: 25 spheric area emitters and a bigger one, outside of the scene, emitting blue light. Altough their number is still relatively small, we can already notice a significant reduction of the noise in the scene. Unfortunately, we can also notice that some fireflies are created in this scenes. I investigated a little on these, and my hypotesis is that they are the result of the selection of an emitter with low pdf, but I could not reach any definitive statement. These image where rendered with 128 samples per pixel.
+To further verify this feature, I created a scene with more emitters: 25 spheric area emitters and a bigger one, outside of the scene, emitting blue light. Altough their number is still relatively small, we can already notice a significant reduction of the noise in the scene. We can also notice that some fireflies are created in this scenes. I investigated a little on these, and my hypotesis is that they are the result of the selection of an emitter with low pdf, but I could not reach any definitive statement. Another strange effect takes place using the EMS integrator, as when manylights is used, it seems that the blue light does not contributes to the scene. However, the mean value of the images is the same.
+
+These image where rendered with 128 samples per pixel.
 <div class="twentytwenty-container">
-    <img src="../../validation/manylights/wood_high/wood_scene.png" alt="MIS" class="img-responsive">
-    <img src="../../validation/manylights/wood_high/wood_scene_maylights.png" alt="MIS with manylights" class="img-responsive">
+    <img src="../../validation/manylights/wood_high/wood_scene_ems.png" alt="EMS" class="img-responsive">
+    <img src="../../validation/manylights/wood_high/wood_scene_manylights_ems.png" alt="EMS with manylights" class="img-responsive">
+    <img src="../../validation/manylights/wood_high/wood_scene_mis.png" alt="MIS" class="img-responsive">
+    <img src="../../validation/manylights/wood_high/wood_scene_maylights_mis.png" alt="MIS with manylights" class="img-responsive">
 </div>
 <div class="twentytwenty-container">
-    <img src="../../validation/manylights/wood_low/wood_scene.png" alt="MIS" class="img-responsive">
-    <img src="../../validation/manylights/wood_low/wood_scene_manylights.png" alt="MIS with manylights" class="img-responsive">
+    <img src="../../validation/manylights/wood_low/wood_scene_ems.png" alt="EMS" class="img-responsive">
+    <img src="../../validation/manylights/wood_low/wood_scene_manylights_ems.png" alt="EMS with manylights" class="img-responsive">
+    <img src="../../validation/manylights/wood_low/wood_scene_mis.png" alt="MIS" class="img-responsive">
+    <img src="../../validation/manylights/wood_low/wood_scene_manylights_mis.png" alt="MIS with manylights" class="img-responsive">
+</div>
+<div class="twentytwenty-container">
+    <img src="../../validation/manylights/wood_high/wood_scene_pathmis.png" alt="Path MIS" class="img-responsive">
+    <img src="../../validation/manylights/wood_high/wood_scene_manylights_pathmis.png" alt="Path MIS with manylights" class="img-responsive">
 </div>
 
 <!-- Bootstrap core CSS and JavaScript -->
