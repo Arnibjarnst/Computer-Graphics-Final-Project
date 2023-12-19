@@ -269,7 +269,6 @@ private:
         if (dim == 1)
             return radicalInverse(haltonIndex / baseScales[1], 3);
 
-        //return radicalInverse(haltonIndex, Primes[dim]);
         return scrambledRadicalInverse(haltonIndex, Primes[dim], (*m_digitPermutations)[dim]);
     }
 

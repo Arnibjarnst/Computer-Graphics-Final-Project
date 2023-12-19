@@ -55,9 +55,9 @@ public:
     Color3f eval(const EmitterQueryRecord& lRec) const {
         float cosTheta = m_direction.dot(-lRec.wi);
         if (cosTheta < m_cosTheta) return 0.0f;
-        float dist = (lRec.p - lRec.ref).norm();
-        if (cosTheta >= m_cosThetaFalloff) return m_power / (dist * dist);
-        return m_power * (m_theta - std::acos(cosTheta)) * m_invTransitionWidth /  (dist * dist);
+        float d2 = (lRec.p - lRec.ref).squaredNorm();
+        if (cosTheta >= m_cosThetaFalloff) return m_power / d2;
+        return m_power * (m_theta - std::acos(cosTheta)) * m_invTransitionWidth /  d2;
     };
 
     /**
