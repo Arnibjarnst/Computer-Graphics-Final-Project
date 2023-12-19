@@ -53,7 +53,8 @@ public:
                 bsdfEvalQuery.its = &its;
                 Color3f emitterScatter = bsdf->eval(bsdfEvalQuery);
 
-                const float wEm = (lightQuery.pdf * lqr.pdf) / (lightQuery.pdf * lqr.pdf + bsdf->pdf(bsdfEvalQuery));
+                const float den = (lightQuery.pdf * lqr.pdf + bsdf->pdf(bsdfEvalQuery));
+                const float wEm = den > Epsilon? (lightQuery.pdf * lqr.pdf) / den : 0.0f;
 
                 Lem = lqr.pdf > Epsilon ? wEm * radiance * cos * emitterScatter / lqr.pdf: Color3f(0.f);
             }
@@ -79,7 +80,7 @@ public:
                 Lmat = wMat * bsdfValue * radiance;
             }
         }
-
+        
         return Le + Lem + Lmat;
     };
 

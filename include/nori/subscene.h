@@ -35,12 +35,12 @@ public:
         return m_bvh->rayIntersect(ray, its, true);
     }
 
-    const BoundingBox3f &getBoundingBox() const {
-        return m_bvh->getBoundingBox();
+    virtual BoundingBox3f getBoundingBox() const {
+        return m_mesh->getBoundingBox();
     }
 
-    const LightCone getLightCone() {
-        return m_lbvh->getLightCone();
+    virtual LightCone getLightCone() {
+        return m_mesh->getLightCone();
     }
 
 protected:

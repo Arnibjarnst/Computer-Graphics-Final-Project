@@ -1,0 +1,1364 @@
+
+<!-- Table scene, Copyright (c) 2012 by Olesya Jakob -->
+
+<scene>
+	<!-- Independent sample generator, 512 samples per pixel -->
+	<sampler type="independent">
+		<integer name="sampleCount" value="32"/>
+	</sampler>
+
+	<!-- Use the path tracer without multiple importance sampling -->
+	<integrator type="direct_mis">
+	</integrator>
+
+	<!-- Render the scene as viewed by a perspective camera -->
+	<camera type="perspective">
+		<transform name="toWorld">
+			<lookat target="31.6866, -67.2776, 36.1392" 
+				origin="32.1259, -68.0505, 36.597" 
+				up="-0.22886, 0.39656, 0.889024"/>
+		</transform>
+
+		<!-- Field of view: 35 degrees -->
+		<float name="fov" value="35"/>
+
+		<!-- 800x600 pixels -->
+		<integer name="width" value="800"/>
+		<integer name="height" value="600"/>
+	</camera>
+
+	<!-- Two light sources  -->
+    <mesh type="obj">
+		<string name="filename" value="scenes/pa4/table/meshes/mesh_1.obj"/>
+
+		<emitter type="area">
+			<color name="radiance" value="0, .5, .5"/>
+		</emitter>
+
+		<bsdf type="diffuse">
+			<color name="albedo" value="0,0,0"/>
+		</bsdf>
+
+
+		<transform name="toWorld">
+			<scale value="0.06,0.06,-1"/>
+			<translate value="10,0,25"/>
+		</transform>
+	</mesh>
+
+    <mesh type="sphere">
+        <point name="center" value="-24.49400689511265,-24.41590286237609,1"/>
+        <float name="radius" value="0.05"/>
+        <bsdf type="diffuse">
+            <color name="albedo" value="1,1,1"/>
+        </bsdf>
+
+        <emitter type="area">
+            <color name="radiance" value="3000,2000,0"/>
+        </emitter>
+    </mesh>
+    <mesh type="sphere">
+        <point name="center" value="-24.831232341026606,-14.209233205785333,1"/>
+        <float name="radius" value="0.05"/>
+        <bsdf type="diffuse">
+            <color name="albedo" value="1,1,1"/>
+        </bsdf>
+
+        <emitter type="area">
+            <color name="radiance" value="3000,2000,0"/>
+        </emitter>
+    </mesh>
+    <mesh type="sphere">
+        <point name="center" value="-24.508280987936004,-4.618861520039655,1"/>
+        <float name="radius" value="0.05"/>
+        <bsdf type="diffuse">
+            <color name="albedo" value="1,1,1"/>
+        </bsdf>
+
+        <emitter type="area">
+            <color name="radiance" value="3000,2000,0"/>
+        </emitter>
+    </mesh>
+    <mesh type="sphere">
+        <point name="center" value="-24.250673583522335,5.908402095889871,1"/>
+        <float name="radius" value="0.05"/>
+        <bsdf type="diffuse">
+            <color name="albedo" value="1,1,1"/>
+        </bsdf>
+
+        <emitter type="area">
+            <color name="radiance" value="3000,2000,0"/>
+        </emitter>
+    </mesh>
+    <mesh type="sphere">
+        <point name="center" value="-24.034717491970742,15.500993694907459,1"/>
+        <float name="radius" value="0.05"/>
+        <bsdf type="diffuse">
+            <color name="albedo" value="1,1,1"/>
+        </bsdf>
+
+        <emitter type="area">
+            <color name="radiance" value="3000,2000,0"/>
+        </emitter>
+    </mesh>
+    <mesh type="sphere">
+        <point name="center" value="-14.410061145610527,-24.89433292659532,1"/>
+        <float name="radius" value="0.05"/>
+        <bsdf type="diffuse">
+            <color name="albedo" value="1,1,1"/>
+        </bsdf>
+
+        <emitter type="area">
+            <color name="radiance" value="3000,2000,0"/>
+        </emitter>
+    </mesh>
+    <mesh type="sphere">
+        <point name="center" value="-14.442992996020564,-14.3476288577005,1"/>
+        <float name="radius" value="0.05"/>
+        <bsdf type="diffuse">
+            <color name="albedo" value="1,1,1"/>
+        </bsdf>
+
+        <emitter type="area">
+            <color name="radiance" value="3000,2000,0"/>
+        </emitter>
+    </mesh>
+    <mesh type="sphere">
+        <point name="center" value="-14.51491277409905,-4.73641850273833,1"/>
+        <float name="radius" value="0.05"/>
+        <bsdf type="diffuse">
+            <color name="albedo" value="1,1,1"/>
+        </bsdf>
+
+        <emitter type="area">
+            <color name="radiance" value="3000,2000,0"/>
+        </emitter>
+    </mesh>
+    <mesh type="sphere">
+        <point name="center" value="-14.500705139177365,5.774053910643768,1"/>
+        <float name="radius" value="0.05"/>
+        <bsdf type="diffuse">
+            <color name="albedo" value="1,1,1"/>
+        </bsdf>
+
+        <emitter type="area">
+            <color name="radiance" value="3000,2000,0"/>
+        </emitter>
+    </mesh>
+    <mesh type="sphere">
+        <point name="center" value="-14.134490964106579,15.427044744144029,1"/>
+        <float name="radius" value="0.05"/>
+        <bsdf type="diffuse">
+            <color name="albedo" value="1,1,1"/>
+        </bsdf>
+
+        <emitter type="area">
+            <color name="radiance" value="3000,2000,0"/>
+        </emitter>
+    </mesh>
+    <mesh type="sphere">
+        <point name="center" value="-4.051441408297212,-24.450997809098826,1"/>
+        <float name="radius" value="0.05"/>
+        <bsdf type="diffuse">
+            <color name="albedo" value="1,1,1"/>
+        </bsdf>
+
+        <emitter type="area">
+            <color name="radiance" value="3000,2000,0"/>
+        </emitter>
+    </mesh>
+    <mesh type="sphere">
+        <point name="center" value="-4.9278502465023095,-14.228854513767086,1"/>
+        <float name="radius" value="0.05"/>
+        <bsdf type="diffuse">
+            <color name="albedo" value="1,1,1"/>
+        </bsdf>
+
+        <emitter type="area">
+            <color name="radiance" value="3000,2000,0"/>
+        </emitter>
+    </mesh>
+    <mesh type="sphere">
+        <point name="center" value="-4.968464921797547,-4.115040226633113,1"/>
+        <float name="radius" value="0.05"/>
+        <bsdf type="diffuse">
+            <color name="albedo" value="1,1,1"/>
+        </bsdf>
+
+        <emitter type="area">
+            <color name="radiance" value="3000,2000,0"/>
+        </emitter>
+    </mesh>
+    <mesh type="sphere">
+        <point name="center" value="-4.289615474705727,5.869334096092976,1"/>
+        <float name="radius" value="0.05"/>
+        <bsdf type="diffuse">
+            <color name="albedo" value="1,1,1"/>
+        </bsdf>
+
+        <emitter type="area">
+            <color name="radiance" value="3000,2000,0"/>
+        </emitter>
+    </mesh>
+    <mesh type="sphere">
+        <point name="center" value="-4.279274911779773,15.085633676790389,1"/>
+        <float name="radius" value="0.05"/>
+        <bsdf type="diffuse">
+            <color name="albedo" value="1,1,1"/>
+        </bsdf>
+
+        <emitter type="area">
+            <color name="radiance" value="3000,2000,0"/>
+        </emitter>
+    </mesh>
+    <mesh type="sphere">
+        <point name="center" value="5.473046001714225,-24.201781094188725,1"/>
+        <float name="radius" value="0.05"/>
+        <bsdf type="diffuse">
+            <color name="albedo" value="1,1,1"/>
+        </bsdf>
+
+        <emitter type="area">
+            <color name="radiance" value="3000,2000,0"/>
+        </emitter>
+    </mesh>
+    <mesh type="sphere">
+        <point name="center" value="5.152711374301595,-14.475106185905108,1"/>
+        <float name="radius" value="0.05"/>
+        <bsdf type="diffuse">
+            <color name="albedo" value="1,1,1"/>
+        </bsdf>
+
+        <emitter type="area">
+            <color name="radiance" value="3000,2000,0"/>
+        </emitter>
+    </mesh>
+    <mesh type="sphere">
+        <point name="center" value="5.949504184712302,-4.800580739193553,1"/>
+        <float name="radius" value="0.05"/>
+        <bsdf type="diffuse">
+            <color name="albedo" value="1,1,1"/>
+        </bsdf>
+
+        <emitter type="area">
+            <color name="radiance" value="3000,2000,0"/>
+        </emitter>
+    </mesh>
+    <mesh type="sphere">
+        <point name="center" value="5.200761836244663,5.763615972803675,1"/>
+        <float name="radius" value="0.05"/>
+        <bsdf type="diffuse">
+            <color name="albedo" value="1,1,1"/>
+        </bsdf>
+
+        <emitter type="area">
+            <color name="radiance" value="3000,2000,0"/>
+        </emitter>
+    </mesh>
+    <mesh type="sphere">
+        <point name="center" value="5.0962077341074385,15.35301193044609,1"/>
+        <float name="radius" value="0.05"/>
+        <bsdf type="diffuse">
+            <color name="albedo" value="1,1,1"/>
+        </bsdf>
+
+        <emitter type="area">
+            <color name="radiance" value="3000,2000,0"/>
+        </emitter>
+    </mesh>
+    <mesh type="sphere">
+        <point name="center" value="15.492257325750241,-24.745542443820376,1"/>
+        <float name="radius" value="0.05"/>
+        <bsdf type="diffuse">
+            <color name="albedo" value="1,1,1"/>
+        </bsdf>
+
+        <emitter type="area">
+            <color name="radiance" value="3000,2000,0"/>
+        </emitter>
+    </mesh>
+    <mesh type="sphere">
+        <point name="center" value="15.961456088802073,-14.190325464259024,1"/>
+        <float name="radius" value="0.05"/>
+        <bsdf type="diffuse">
+            <color name="albedo" value="1,1,1"/>
+        </bsdf>
+
+        <emitter type="area">
+            <color name="radiance" value="3000,2000,0"/>
+        </emitter>
+    </mesh>
+    <mesh type="sphere">
+        <point name="center" value="15.399834657555557,-4.767202762791874,1"/>
+        <float name="radius" value="0.05"/>
+        <bsdf type="diffuse">
+            <color name="albedo" value="1,1,1"/>
+        </bsdf>
+
+        <emitter type="area">
+            <color name="radiance" value="3000,2000,0"/>
+        </emitter>
+    </mesh>
+    <mesh type="sphere">
+        <point name="center" value="15.729241219307696,5.348059630328458,1"/>
+        <float name="radius" value="0.05"/>
+        <bsdf type="diffuse">
+            <color name="albedo" value="1,1,1"/>
+        </bsdf>
+
+        <emitter type="area">
+            <color name="radiance" value="3000,2000,0"/>
+        </emitter>
+    </mesh>
+    <mesh type="sphere">
+        <point name="center" value="15.722627751606714,15.96881618986985,1"/>
+        <float name="radius" value="0.05"/>
+        <bsdf type="diffuse">
+            <color name="albedo" value="1,1,1"/>
+        </bsdf>
+
+        <emitter type="area">
+            <color name="radiance" value="3000,2000,0"/>
+        </emitter>
+    </mesh>
+	
+
+	<subscene type="subscene">
+		<integer name="id" value="1"/>
+		<mesh type="obj">
+			<string name="filename" value="../abjarnsteins_gfigini/meshes/meshes/Tree.038.obj"/>
+
+			<bsdf type="microfacet">
+				<color name="kd" value="0, 0.5, 0"/>
+			</bsdf>
+			<transform name="toWorld">
+				<translate value="0,0,5"/>
+			</transform>
+		</mesh>
+	</subscene>
+
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-29.92584435682044, -29.67096069948003, 0"/>
+        <rotate angle="12" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-29.187985640779004, -24.217738726688175, 0"/>
+        <rotate angle="14" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-29.571163650958013, -19.6008677727812, 0"/>
+        <rotate angle="12" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-29.855699702568778, -14.241500050947977, 0"/>
+        <rotate angle="2" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-29.55909435359626, -9.005739656527304, 0"/>
+        <rotate angle="4" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-29.49575065789299, -4.124418424173659, 0"/>
+        <rotate angle="18" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-29.887917622053653, 0.9251855150549201, 0"/>
+        <rotate angle="6" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-29.18226168132197, 5.876094454335471, 0"/>
+        <rotate angle="7" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-29.056296740733206, 10.367540343455325, 0"/>
+        <rotate angle="17" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-29.142180329097908, 15.312360815141684, 0"/>
+        <rotate angle="5" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-29.804517035188372, 20.250441129485957, 0"/>
+        <rotate angle="11" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-29.074450194067005, 25.439102548886023, 0"/>
+        <rotate angle="1" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-24.69521691976302, -29.25980405845316, 0"/>
+        <rotate angle="7" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-24.42261453647469, -24.60288777262097, 0"/>
+        <rotate angle="16" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-24.89365309002048, -19.011296797044498, 0"/>
+        <rotate angle="1" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-24.584652243724292, -14.457844952956606, 0"/>
+        <rotate angle="15" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-24.128416760496176, -9.740015704581591, 0"/>
+        <rotate angle="15" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-24.97298357985119, -4.922029149835806, 0"/>
+        <rotate angle="11" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-24.959555734839075, 0.5662007566789792, 0"/>
+        <rotate angle="4" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-24.486725101688336, 5.881354384061574, 0"/>
+        <rotate angle="6" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-24.429617639254122, 10.654531202747183, 0"/>
+        <rotate angle="19" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-24.673892078257573, 15.229249762909992, 0"/>
+        <rotate angle="18" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-24.80463324631054, 20.83370084536848, 0"/>
+        <rotate angle="10" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-24.285207309665076, 25.540620619900988, 0"/>
+        <rotate angle="11" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-19.7267769996529, -29.85372867860424, 0"/>
+        <rotate angle="8" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-19.980102632703876, -24.563637268063385, 0"/>
+        <rotate angle="6" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-19.174137045346974, -19.31660659569815, 0"/>
+        <rotate angle="4" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-19.595325988919125, -14.890573866946806, 0"/>
+        <rotate angle="12" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-19.41943222027116, -9.344874100591966, 0"/>
+        <rotate angle="14" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-19.08897086111617, -4.678214893730617, 0"/>
+        <rotate angle="2" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-19.434625633859753, 0.1312090419800105, 0"/>
+        <rotate angle="6" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-19.074301057815276, 5.186011886505182, 0"/>
+        <rotate angle="17" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-19.87499088459319, 10.036817656062391, 0"/>
+        <rotate angle="2" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-19.321226399100176, 15.441661590830105, 0"/>
+        <rotate angle="17" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-19.402715669949767, 20.518087246461967, 0"/>
+        <rotate angle="1" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-19.1283071566773, 25.382508153185974, 0"/>
+        <rotate angle="1" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-14.017409144270689, -29.407901578678956, 0"/>
+        <rotate angle="7" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-14.415763981540962, -24.401214181732378, 0"/>
+        <rotate angle="10" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-14.645209638912089, -19.97075524250366, 0"/>
+        <rotate angle="6" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-14.42264248615881, -14.436331318637754, 0"/>
+        <rotate angle="14" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-14.645779923674311, -9.159909704362544, 0"/>
+        <rotate angle="0" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-14.479715194835135, -4.21011014854893, 0"/>
+        <rotate angle="11" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-14.203146504866186, 0.5750349384324344, 0"/>
+        <rotate angle="17" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-14.643452027827399, 5.898498307129276, 0"/>
+        <rotate angle="11" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-14.608305703643428, 10.027568646395597, 0"/>
+        <rotate angle="2" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-14.309467413779299, 15.445150584851854, 0"/>
+        <rotate angle="7" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-14.338235024576877, 20.616673513532746, 0"/>
+        <rotate angle="13" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-14.830554805233014, 25.57768600244245, 0"/>
+        <rotate angle="16" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-9.070343270713906, -29.519854913465206, 0"/>
+        <rotate angle="2" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-9.32806504615116, -24.208911618000077, 0"/>
+        <rotate angle="9" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-9.700940279831267, -19.160788803577773, 0"/>
+        <rotate angle="3" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-9.322935272885411, -14.441760257805578, 0"/>
+        <rotate angle="11" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-9.52885521040256, -9.24733973018184, 0"/>
+        <rotate angle="17" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-9.379169730874768, -4.877900212665196, 0"/>
+        <rotate angle="3" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-9.984499419613257, 0.21351717546764937, 0"/>
+        <rotate angle="19" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-9.530664818650123, 5.624366112295188, 0"/>
+        <rotate angle="14" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-9.891578337671675, 10.228385038701779, 0"/>
+        <rotate angle="7" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-9.325892890105619, 15.586809697203833, 0"/>
+        <rotate angle="11" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-9.642776278245023, 20.003318643620077, 0"/>
+        <rotate angle="18" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-9.893945674831146, 25.690028976490805, 0"/>
+        <rotate angle="9" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-4.534435267284644, -29.15791603107861, 0"/>
+        <rotate angle="10" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-4.157576469176238, -24.73271545730607, 0"/>
+        <rotate angle="19" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-4.3698595482711085, -19.374057127644637, 0"/>
+        <rotate angle="2" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-4.881312174103867, -14.393165377774467, 0"/>
+        <rotate angle="9" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-4.775199881627358, -9.054982228077376, 0"/>
+        <rotate angle="18" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-4.389189087613706, -4.498764935526653, 0"/>
+        <rotate angle="13" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-4.505366877372138, 0.0313845854335284, 0"/>
+        <rotate angle="8" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-4.177685771314379, 5.6160825003784955, 0"/>
+        <rotate angle="10" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-4.5333226255084185, 10.159903139216583, 0"/>
+        <rotate angle="8" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-4.107787548233488, 15.796444259586433, 0"/>
+        <rotate angle="11" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-4.0574917161958535, 20.78376746997263, 0"/>
+        <rotate angle="5" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="-4.100633420919814, 25.13016963377558, 0"/>
+        <rotate angle="18" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="0.8355401132028072, -29.37009882725361, 0"/>
+        <rotate angle="13" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="0.778544153241497, -24.937602309274315, 0"/>
+        <rotate angle="16" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="0.4628677540624865, -19.290799500241018, 0"/>
+        <rotate angle="17" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="0.8853165396027989, -14.939833714680912, 0"/>
+        <rotate angle="9" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="0.4047676845378534, -9.993109369683301, 0"/>
+        <rotate angle="0" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="0.48872050975231174, -4.803682061458577, 0"/>
+        <rotate angle="17" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="0.0962964038209706, 0.2090750892280534, 0"/>
+        <rotate angle="1" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="0.6170241090596034, 5.22540921126137, 0"/>
+        <rotate angle="8" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="0.4494023786793584, 10.966049054060331, 0"/>
+        <rotate angle="17" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="0.691781930031026, 15.643930439765253, 0"/>
+        <rotate angle="13" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="0.043244785280018294, 20.805424304874848, 0"/>
+        <rotate angle="16" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="0.9313262510179565, 25.306198792872316, 0"/>
+        <rotate angle="17" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="5.319242757021332, -29.092217551955265, 0"/>
+        <rotate angle="2" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="5.294153472351746, -24.59027354665696, 0"/>
+        <rotate angle="8" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="5.401519648550201, -19.643895950205163, 0"/>
+        <rotate angle="18" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="5.589663346133325, -14.143717315367121, 0"/>
+        <rotate angle="13" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="5.614127215499668, -9.855035162678396, 0"/>
+        <rotate angle="6" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="5.839635464230253, -4.987436230932733, 0"/>
+        <rotate angle="5" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="5.712835197538949, 0.8081639501233693, 0"/>
+        <rotate angle="3" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="5.138148313288564, 5.979799956546132, 0"/>
+        <rotate angle="18" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="5.989647661321388, 10.107530706575787, 0"/>
+        <rotate angle="17" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="5.557561007666209, 15.873169219846307, 0"/>
+        <rotate angle="19" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="5.198732887965141, 20.622495401263595, 0"/>
+        <rotate angle="1" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="5.881777263268261, 25.488825106687653, 0"/>
+        <rotate angle="10" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="10.317444251104426, -29.66897899943568, 0"/>
+        <rotate angle="4" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="10.359967707095603, -24.577610002672873, 0"/>
+        <rotate angle="17" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="10.731071050934112, -19.845799116860466, 0"/>
+        <rotate angle="8" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="10.766580527817245, -14.504565061318115, 0"/>
+        <rotate angle="9" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="10.281955538777037, -9.992054443935936, 0"/>
+        <rotate angle="11" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="10.769916348834755, -4.551228141326403, 0"/>
+        <rotate angle="12" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="10.84288948369458, 0.005581588019928807, 0"/>
+        <rotate angle="2" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="10.570234425151938, 5.623982139598366, 0"/>
+        <rotate angle="1" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="10.446388514479066, 10.787540469931237, 0"/>
+        <rotate angle="7" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="10.24159711807776, 15.98246221254621, 0"/>
+        <rotate angle="15" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="10.235857286483627, 20.534247857122484, 0"/>
+        <rotate angle="15" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="10.326842400202851, 25.596946673181574, 0"/>
+        <rotate angle="14" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="15.412167633391094, -29.04264298458265, 0"/>
+        <rotate angle="6" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="15.018328778512505, -24.579755868884266, 0"/>
+        <rotate angle="19" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="15.725587492272624, -19.3801132231453, 0"/>
+        <rotate angle="5" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="15.681826461632092, -14.260629213428368, 0"/>
+        <rotate angle="17" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="15.346430168598127, -9.612436498907172, 0"/>
+        <rotate angle="0" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="15.159757169143635, -4.0942361346291944, 0"/>
+        <rotate angle="16" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="15.268869956127556, 0.8746245141064194, 0"/>
+        <rotate angle="1" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="15.388086972254847, 5.972987896362665, 0"/>
+        <rotate angle="8" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="15.560527198953697, 10.84630336076561, 0"/>
+        <rotate angle="4" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="15.788753644479103, 15.50017061960814, 0"/>
+        <rotate angle="13" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="15.510030576805068, 20.019700747935026, 0"/>
+        <rotate angle="6" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="15.638452037541686, 25.08881009880854, 0"/>
+        <rotate angle="5" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="20.122472546904465, -29.09624913142561, 0"/>
+        <rotate angle="5" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="20.05752796071426, -24.58669531882951, 0"/>
+        <rotate angle="6" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="20.2523511105027, -19.625309319434482, 0"/>
+        <rotate angle="15" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="20.88260162154095, -14.969392071607945, 0"/>
+        <rotate angle="7" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="20.381514165698164, -9.496312916565689, 0"/>
+        <rotate angle="14" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="20.45763704027698, -4.406518652319828, 0"/>
+        <rotate angle="17" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="20.15648765662514, 0.675231193550166, 0"/>
+        <rotate angle="13" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="20.657219104979436, 5.31939132669216, 0"/>
+        <rotate angle="7" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="20.61850546358333, 10.080614681897158, 0"/>
+        <rotate angle="5" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="20.984839010423844, 15.615896073472587, 0"/>
+        <rotate angle="6" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="20.228041239631448, 20.74564226070642, 0"/>
+        <rotate angle="0" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="20.02101988064209, 25.4302590774735, 0"/>
+        <rotate angle="3" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="25.577350461871486, -29.36297821648204, 0"/>
+        <rotate angle="19" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="25.36917518131757, -24.6815934668288, 0"/>
+        <rotate angle="17" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="25.553357601879686, -19.648208911871478, 0"/>
+        <rotate angle="4" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="25.35451025573821, -14.99526692334732, 0"/>
+        <rotate angle="8" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="25.252537922119394, -9.411236077635747, 0"/>
+        <rotate angle="12" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="25.374925600141733, -4.9882988916629625, 0"/>
+        <rotate angle="1" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="25.23713614632903, 0.39336546144642315, 0"/>
+        <rotate angle="6" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="25.865632319107792, 5.093394653758615, 0"/>
+        <rotate angle="6" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="25.704187579124543, 10.75459381587697, 0"/>
+        <rotate angle="12" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="25.47628377654552, 15.251899313039496, 0"/>
+        <rotate angle="13" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="25.830433633646653, 20.676474162366347, 0"/>
+        <rotate angle="0" axis="0,0,1" />
+    </transform>
+</instance>
+<instance type="instance">
+    <integer name="subscene" value="1"/>
+    <transform name="toWorld">
+        <translate value="25.066282344635336, 25.152315385975655, 0"/>
+        <rotate angle="14" axis="0,0,1" />
+    </transform>
+</instance>
+    <!-- Diffuse floor -->
+	<mesh type="obj">
+		<string name="filename" value="./scenes/pa4/table/meshes/mesh_1.obj"/>
+
+		<bsdf type="diffuse">
+			<color name="albedo" value=".5,.5,.5"/>
+		</bsdf>
+
+		<transform name="toWorld">
+			<scale value="0.2,0.35,0.5"/>
+			<translate value="-35,25,0"/>
+		</transform>
+
+	</mesh>
+
+	
+</scene>

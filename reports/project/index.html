@@ -221,6 +221,17 @@ As we can see using MIS for the free path sampling significantly reduces noise w
 ## Gianluca Figini
 
 ### Intel's Open Image Denoise
+My first approach to implementing this feature was to modify nori's function that, at the moment displays exr files. My idea was to modify it such that, upon opening an exr file, the image would have been denoised and saved in a separate file. Trying to implement this though, I run into some issues implementing the Open Denoiser library into the project, and in syntesis, I could not get the expected result, either because I get a linker error or the program compiles successfully but fails immediately when run.
+
+I therefore resolved to use another approach: I downoladed the precompiled executable from the website of the Open Denoiser and run it directly, externally to nori. In order to convert to and from the required input type, i.e. little-endian pfm, I used ImageMagick.
+
+<div class="twentytwenty-container">
+    <img src="../../validation/homogeneous/nori_box_mis_color_max_coeff.png" alt="MIS simple max coeff" class="img-responsive">
+    <img src="../../validation/homogeneous/cbox_mis_albedo=0.1_t=10.0.png" alt="MIS simple" class="img-responsive">
+    <img src="../../validation/homogeneous/cbox_mitsuba_albedo=0.1_t=10.0.png" alt="Mitsuba" class="img-responsive">
+    <img src="../../validation/homogeneous/nori_box_mis_color.png" alt="MIS" class="img-responsive">
+
+</div>
 ### Object instancing
 **Relevant files**
 <ul>

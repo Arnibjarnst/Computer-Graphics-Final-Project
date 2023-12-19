@@ -165,7 +165,7 @@ public:
     const BoundingBox3f &getBoundingBox() const { return m_bbox; }
     
     //// Return a lightcone of the entire mesh
-    virtual struct LightCone getLightCone() const = 0;
+    virtual LightCone getLightCone() const = 0;
 
     /// Is this mesh an area emitter?
     bool isEmitter() const { return m_emitter != nullptr; }

@@ -12,13 +12,23 @@ public:
     Instance(const PropertyList &propList);
 
     void linkSubScene(SubScene* subscene) {
-        std::cout << tfm::format("Linked subscene %d (m_subscene = %d)", subscene->getID(), m_subscene) << endl;
+        //std::cout << tfm::format("Linked subscene %d (m_subscene = %d)", subscene->getID(), m_subscene) << endl;
         if (m_subscene)
             throw NoriException("There can only be one subscene per instance!");
         m_subscene = subscene;
 
-        m_bsdf = const_cast<BSDF*>(subscene->getMesh()->getBSDF());
-        m_emitter = subscene->getMesh()->isEmitter() ? const_cast<Emitter*> (subscene->getMesh()->getEmitter()) : nullptr;
+        m_bsdf = const_cast<BSDF *>(subscene->getMesh()->getBSDF());
+        if (subscene->getMesh()->isEmitter()){
+            m_emitter = const_cast<Emitter *>(subscene->getMesh()->getEmitter());
+            m_emitter->setShape(this);
+        } else {
+            m_emitter = nullptr;
+        }
+        m_bbox = BoundingBox3f();
+        BoundingBox3f og_bbox = m_subscene->getBoundingBox();
+        for (int i = 0; i < 8; i++) {
+            m_bbox.expandBy(toWorld(og_bbox.getCorner(i)));
+        }
     }
 
     bool linked() {return m_subscene;}
@@ -52,22 +62,16 @@ public:
         return m_ToLocal * dir;
     }
 
+    Normal3f toLocal(const Normal3f n) const {
+        return m_ToLocal * n;
+    }
+
     Ray3f toLocal(const Ray3f &ray) const {
         return m_ToLocal * ray;
     }
 
-    const BoundingBox3f &getBoundingBox() const {
-        BoundingBox3f og_bbox = m_subscene->getBoundingBox();
-        BoundingBox3f res;
-        for (int i = 0; i < 8; i++) {
-            res.expandBy(toWorld(og_bbox.getCorner(i)));
-        }
-
-        return res;
-     }
-
     virtual BoundingBox3f getBoundingBox(uint32_t index) const override{
-        return getBoundingBox();
+        return m_bbox;
     }
 
     virtual LightCone getLightCone() const override{
@@ -116,11 +120,21 @@ public:
     }
 
     void sampleSurface(ShapeQueryRecord & sRec, const Point2f & sample) const {
-        return m_subscene->getMesh()->sampleSurface(sRec, sample);
+        sRec.ref = toLocal(sRec.ref);
+        sRec.p = toLocal(sRec.p);
+        sRec.n = toLocal(sRec.n);
+        m_subscene->getMesh()->sampleSurface(sRec, sample);
+        sRec.ref = toWorld(sRec.ref);
+        sRec.p = toWorld(sRec.p);
+        sRec.n = toWorld(sRec.n);
     }
 
     float pdfSurface(const ShapeQueryRecord & sRec) const {
-        return m_subscene->getMesh()->pdfSurface(sRec);
+        ShapeQueryRecord sRec1;
+        sRec1.ref = toLocal(sRec.ref);
+        sRec1.p = toLocal(sRec.p);
+        sRec1.n = toLocal(sRec.n);
+        return m_subscene->getMesh()->pdfSurface(sRec1);
     }
 
     virtual std::string toString() const override {

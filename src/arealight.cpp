@@ -33,8 +33,10 @@ public:
         return tfm::format(
                 "AreaLight[\n"
                 "  radiance = %s,\n"
+                "  center = %s\n"
                 "]",
                 m_radiance.toString());
+                m_shape->getBoundingBox().getCenter().toString();
     }
 
     virtual Color3f eval(const EmitterQueryRecord & lRec) const override {
